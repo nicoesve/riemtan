@@ -1,0 +1,210 @@
+---
+title: "riemtan: Statistical Analysis of Connectomes using Riemannian Geometry"
+author: "Nicolas Escobar, Jaroslaw Harezlak"
+date: "2025-02-12"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{riemtan: Statistical Analysis of Connectomes using Riemannian Geometry}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+The `riemtan` package provides tools for statistical analysis of connectomes using Riemannian geometry. This package is particularly useful for researchers working with fMRI data and other applications where symmetric positive definite (SPD) matrices play a crucial role.
+
+## Key Features
+
+- High-level interface for handling connectome data
+- Support for multiple Riemannian metrics (AIRM, Log-Euclidean, Euclidean, Log-Cholesky, Bures-Wasserstein)
+- Efficient parallel computation capabilities
+- Memory-efficient operations through reference-based manipulation
+- Comprehensive tools for geometric operations and statistical analysis
+
+# Installation
+
+You can install `riemtan` from CRAN:
+
+```r
+install.packages("riemtan")
+```
+
+Or install the development version from GitHub:
+
+```r
+devtools::install_github("nicoesve/riemtan")
+```
+
+# Basic Usage
+
+## Loading the Package and Setting Up
+
+```r
+library(riemtan)
+library(Matrix)
+library(future)
+
+# Enable parallel processing
+plan(multisession)
+```
+
+## Working with Metrics
+
+The package provides several pre-configured metrics:
+
+```r
+# Load the AIRM metric
+data(airm)
+
+# Other available metrics
+data(log_euclidean)
+data(euclidean)
+data(log_cholesky)
+data(bures_wasserstein)
+```
+
+## Creating and Manipulating Samples
+
+### Creating Random Samples
+
+```r
+# Create an identity matrix
+id <- diag(10) |> 
+  as("dpoMatrix") |>
+  Matrix::pack()
+
+# Generate two random samples
+sample1 <- rspdnorm(30, id, id, airm)  # Centered at I
+sample2 <- rspdnorm(30, 2*id, id, airm)  # Centered at 2I
+```
+
+### Computing Different Representations
+
+```r
+# Compute tangent space representations
+sample1$compute_unvecs()
+sample1$compute_tangents()
+
+# Compute manifold representations
+sample1$compute_conns()
+
+# Check if computations were successful
+!is.null(sample1$connectomes)  # Should be TRUE
+```
+
+## Statistical Analysis
+
+### Computing the Fréchet Mean
+
+```r
+# Create a sample from your connectome data
+conn_sample <- CSample$new(conns = your_connectomes, metric_obj = airm)
+
+# Compute the Fréchet mean
+conn_sample$compute_fmean()
+
+# Center the sample at the Fréchet mean
+conn_sample$center()
+```
+
+### Computing Sample Statistics
+
+```r
+# Compute variation
+conn_sample$compute_variation()
+
+# Compute sample covariance
+conn_sample$compute_sample_cov()
+```
+
+# Advanced Examples
+
+## Discriminating Between Two Samples
+
+This example shows how to prepare data for clustering analysis:
+
+```r
+# Combine two samples
+joint_conns <- c(sample1$connectomes, sample2$connectomes)
+combined_sample <- CSample$new(conns = joint_conns, metric_obj = airm)
+
+# Prepare for clustering
+combined_sample$compute_tangents()
+combined_sample$center()  # Center at Fréchet mean
+combined_sample$compute_vecs()  # Get vectorized representation
+
+# The vectorized representations can now be used with standard clustering algorithms
+```
+
+## Working with Real Data
+
+When working with real connectome data, you'll typically need to pre-process your matrices:
+
+```r
+# Convert your matrices to the correct format
+parsed_conns <- your_raw_conns |>
+  purrr::map(\(x) as(x, "dpoMatrix")) |>
+  purrr::map(Matrix::pack)
+
+# Create a CSample object
+conn_sample <- CSample$new(parsed_conns, airm)
+
+# Compute geometric statistics
+conn_sample$compute_fmean()
+conn_sample$compute_tangents()
+conn_sample$center()
+conn_sample$compute_vecs()
+```
+
+# Key Classes
+
+## CSample Class
+
+The `CSample` class is the main workhorse of the package. It manages:
+
+- Connectome data in different representations (manifold, tangent space, vectorized)
+- Statistical computations
+- Automatic parallel processing when possible
+- Memory-efficient operations
+
+Key methods include:
+- `compute_tangents()`: Computes tangent space representations
+- `compute_conns()`: Computes manifold representations
+- `compute_vecs()`: Computes vectorized representations
+- `compute_fmean()`: Computes Fréchet mean
+- `center()`: Centers the sample at its Fréchet mean
+- `compute_variation()`: Computes sample variation
+- `compute_sample_cov()`: Computes sample covariance
+
+## Metric Objects
+
+Metric objects (class `rmetric`) contain four essential functions:
+- `log`: Computes Riemannian logarithm
+- `exp`: Computes Riemannian exponential
+- `vec`: Performs vectorization
+- `unvec`: Performs inverse vectorization
+
+# Performance Considerations
+
+- The package automatically utilizes parallel processing for computationally intensive operations
+- Operations are performed by reference when possible to minimize memory usage
+- For large datasets, consider:
+  - Using parallel processing (`plan(multisession)`)
+  - Monitoring memory usage
+  - Computing representations only as needed
+
+# References
+
+For more details about the mathematical foundations and methodology, refer to:
+
+1. Pennec et al. - Introduction of the AIRM metric
+2. Goni et al. - Applications in connectome analysis
+3. Package documentation and vignettes
+
