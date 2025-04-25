@@ -434,7 +434,7 @@ safe_logm <- function(x) {
   tryCatch(
     expm::logm(x, method = "Eigen"),
     error = function(e) {
-      print(e)
+      message(e)
       expm::logm(x, method = "Higham08")
     }
   )
