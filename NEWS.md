@@ -1,3 +1,12 @@
+# riemtan 0.2.0
+
+## New Features
+- Added `super_sample.R`, introducing the `CSuperSample` class for handling and analyzing collections of `CSample` objects.
+- Added comprehensive tests for `CSuperSample` in `test-csupersample.R`.
+
+## Dependency Changes
+- Moved the `Matrix` package from `Depends` to `Imports` in the DESCRIPTION file.
+
 # riemtan 0.1.0
 
 ## New Features
