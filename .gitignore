@@ -1,0 +1,5 @@
+# Ignore macOS Finder metadata
+.DS_Store
+
+# Ignore the .devcontainer directory and its contents
+.devcontainer/
