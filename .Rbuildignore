@@ -2,3 +2,4 @@
 ^\.devcontainer/
 ^docs/
 ^README\.md
+^metrics\.R
