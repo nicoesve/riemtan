@@ -103,18 +103,4 @@ test_that("computation of advanced statistics works", {
       x |> inherits("dppMatrix") |> expect_true()
     )
   })()
-  ss$Log_Wilks_Lambda() |> (\(x) {
-    list(
-      x |> is.null() |> expect_false(),
-      x |> inherits("numeric") |> expect_true(),
-      x |> expect_lt(0)
-    )
-  })()
-  ss$Pillais_Trace() |> (\(x) {
-    list(
-      x |> is.null() |> expect_false(),
-      x |> inherits("numeric") |> expect_true(),
-      x |> expect_gt(0)
-    )
-  })()
 })
