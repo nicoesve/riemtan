@@ -1,0 +1,9 @@
+pandoc: 3.1.3
+pkgdown: 2.1.2
+pkgdown_sha: ~
+articles:
+  riemtan: riemtan.html
+last_built: 2025-05-21T16:04Z
+urls:
+  reference: https://nicoesve.github.io/riemtan/reference
+  article: https://nicoesve.github.io/riemtan/articles
