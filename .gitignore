@@ -1,4 +1,4 @@
 # Ignore macOS Finder metadata
 .DS_Store
 #docs/
-.devcontainter/
+.devcontainer/
