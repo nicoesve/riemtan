@@ -4,7 +4,13 @@
 \alias{compute_frechet_mean}
 \title{Compute the Frechet Mean}
 \usage{
-compute_frechet_mean(sample, tol = 0.05, max_iter = 20, lr = 0.2)
+compute_frechet_mean(
+  sample,
+  tol = 0.05,
+  max_iter = 20,
+  lr = 0.2,
+  batch_size = 32
+)
 }
 \arguments{
 \item{sample}{An object of class \code{CSample} containing the sample data.}
@@ -14,6 +20,8 @@ compute_frechet_mean(sample, tol = 0.05, max_iter = 20, lr = 0.2)
 \item{max_iter}{An integer specifying the maximum number of iterations. Default is 20.}
 
 \item{lr}{A numeric value specifying the learning rate. Default is 0.2.}
+
+\item{batch_size}{Integer. The number of samples to process in each batch during computation or data processing. Default is 32}
 }
 \value{
 The computed Frechet mean.

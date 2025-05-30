@@ -94,6 +94,7 @@ relocate <- function(old_ref, new_ref, images, met) {
 #' @param sample An object of class `CSample` containing the sample data.
 #' @param tol A numeric value specifying the tolerance for convergence. Default is 0.05.
 #' @param max_iter An integer specifying the maximum number of iterations. Default is 20.
+#' @param batch_size Integer. The number of samples to process in each batch during computation or data processing. Default is 32
 #' @param lr A numeric value specifying the learning rate. Default is 0.2.
 #' @return The computed Frechet mean.
 #' @details
@@ -113,7 +114,7 @@ relocate <- function(old_ref, new_ref, images, met) {
 #'   compute_frechet_mean(sample, tol = 0.01, max_iter = 50, lr = 0.1)
 #' }
 #' @export
-compute_frechet_mean <- function(sample, tol = 0.05, max_iter = 20, lr = 0.2) {
+compute_frechet_mean <- function(sample, tol = 0.05, max_iter = 20, lr = 0.2, batch_size = 32) {
   # Validating parameters
   if (!is.null(sample$frechet_mean)) {
     warning("The Frechet mean has already been computed.")
@@ -134,33 +135,41 @@ compute_frechet_mean <- function(sample, tol = 0.05, max_iter = 20, lr = 0.2) {
     iter <- iter + 1
     old_ref_pt <- aux_sample$ref_point
 
-    if (iter > max_iter) {
-      warning("Computation of Frechet mean exceeded maximum
-                number of iterations.")
+    # Shuffle tangent images for batching
+    n <- length(old_tan)
+    idx <- sample(n)
+    old_tan_shuffled <- old_tan[idx]
+
+    # Process in batches
+    for (start in seq(1, n, by = batch_size)) {
+      end <- min(start + batch_size - 1, n)
+      batch <- old_tan_shuffled[start:end]
+
+      # Compute batch step
+      tan_step <- lr * Reduce(`+`, batch) / length(batch)
+      tan_step <- tan_step |>
+        Matrix::symmpart() |>
+        Matrix::pack()
+      new_ref_pt <- aux_sample$riem_metric$exp(old_ref_pt, tan_step)
+
+      # Mapping tangent images to the new step
+      new_tan_imgs <- relocate(
+        old_ref_pt, new_ref_pt, old_tan,
+        sample$riem_metric
+      )
+
+      aux_sample <- CSample$new(
+        tan_imgs = new_tan_imgs,
+        ref_pt = new_ref_pt,
+        centered = FALSE, metric_obj = sample$riem_metric
+      )
+      old_ref_pt <- new_ref_pt
+      old_tan <- new_tan_imgs
     }
 
-    # Computing the step
-    tan_step <- lr * Reduce(`+`, old_tan) /
-      aux_sample$sample_size
-    tan_step <- tan_step |>
-      Matrix::symmpart() |>
-      Matrix::pack()
-    new_ref_pt <- aux_sample$riem_metric$exp(old_ref_pt, tan_step)
-
-    delta <- Matrix::norm(new_ref_pt - old_ref_pt, "F") /
-      Matrix::norm(old_ref_pt, "F")
-
-    # Mapping tangent images to the new step
-    new_tan_imgs <- relocate(
-      old_ref_pt, new_ref_pt, old_tan,
-      sample$riem_metric
-    )
-
-    aux_sample <- CSample$new(
-      tan_imgs = new_tan_imgs,
-      ref_pt = new_ref_pt,
-      centered = FALSE, metric_obj = sample$riem_metric
-    )
+    # Compute delta after all batches in this epoch
+    delta <- Matrix::norm(aux_sample$ref_point - sample$ref_point, "F") /
+      Matrix::norm(sample$ref_point, "F")
   }
   aux_sample$ref_point
 }
