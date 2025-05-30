@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">riemtan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,6 +89,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>     change_ref_pt: function (new_ref_pt) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     clone: function (deep = FALSE) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     compute_conns: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     compute_dists: function () </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     compute_fmean: function (tol = 0.05, max_iter = 20, lr = 0.2) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     compute_sample_cov: function () </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     compute_tangents: function (ref_pt = default_ref_pt(private$p)) </span>
@@ -96,6 +97,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>     compute_variation: function () </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     compute_vecs: function () </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     connectomes: active binding</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     distances: active binding</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     frechet_mean: active binding</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     initialize: function (conns = NULL, tan_imgs = NULL, vec_imgs = NULL, centered = NULL, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     is_centered: active binding</span>
@@ -112,6 +114,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>     centered: FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     conns: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     d: 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     dists: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     f_mean: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     metric_obj: rmetric</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     n: 10</span>
@@ -131,7 +134,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer></div>

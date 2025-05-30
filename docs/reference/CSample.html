@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">riemtan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,6 +89,10 @@
 <dd><p>Reference point for tangent or vectorized images</p></dd>
 
 
+<dt><code>distances</code></dt>
+<dd><p>Squared distances to the Frechet mean</p></dd>
+
+
 </dl><p></p></div>
     </div>
     <div class="section level2">
@@ -106,6 +110,7 @@
 <li><p><a href="#method-CSample-change_ref_pt"><code>CSample$change_ref_pt()</code></a></p></li>
 <li><p><a href="#method-CSample-center"><code>CSample$center()</code></a></p></li>
 <li><p><a href="#method-CSample-compute_variation"><code>CSample$compute_variation()</code></a></p></li>
+<li><p><a href="#method-CSample-compute_dists"><code>CSample$compute_dists()</code></a></p></li>
 <li><p><a href="#method-CSample-compute_sample_cov"><code>CSample$compute_sample_cov()</code></a></p></li>
 <li><p><a href="#method-CSample-clone"><code>CSample$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-CSample-new"></a><div class="section">
@@ -318,16 +323,16 @@
 <p>None. This function is called for its side effects.</p>
 </div>
 
-</div><p></p><hr><a id="method-CSample-compute_sample_cov"></a><div class="section">
-<h3 id="method-compute-sample-cov-">Method <code>compute_sample_cov()</code><a class="anchor" aria-label="anchor" href="#method-compute-sample-cov-"></a></h3>
-<p>Compute Sample Covariance</p><div class="section">
+</div><p></p><hr><a id="method-CSample-compute_dists"></a><div class="section">
+<h3 id="method-compute-dists-">Method <code>compute_dists()</code><a class="anchor" aria-label="anchor" href="#method-compute-dists-"></a></h3>
+<p>Compute distances</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_sample_cov</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_dists</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="details-7">Details<a class="anchor" aria-label="anchor" href="#details-7"></a></h4>
-<p>This function computes the sample covariance matrix for the vector images. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary.</p>
+<p>This function computes the distances of the elements of the sample to the Frechet mean. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary. If the sample is not centered, it centers the sample and recomputes the vectors. Finally, it calculates the distances as the Euclidean norms of the vector images. Error if <code>vec_imgs</code> is not specified.</p>
 </div>
 
 <div class="section">
@@ -335,10 +340,27 @@
 <p>None. This function is called for its side effects.</p>
 </div>
 
+</div><p></p><hr><a id="method-CSample-compute_sample_cov"></a><div class="section">
+<h3 id="method-compute-sample-cov-">Method <code>compute_sample_cov()</code><a class="anchor" aria-label="anchor" href="#method-compute-sample-cov-"></a></h3>
+<p>Compute Sample Covariance</p><div class="section">
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_sample_cov</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="details-8">Details<a class="anchor" aria-label="anchor" href="#details-8"></a></h4>
+<p>This function computes the sample covariance matrix for the vector images. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary.</p>
+</div>
+
+<div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<p>None. This function is called for its side effects.</p>
+</div>
+
 </div><p></p><hr><a id="method-CSample-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -364,7 +386,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer></div>
