@@ -1,4 +1,4 @@
 library(testthat)
-library(riemtan)
+library(riemtanVar)
 
-test_check("riemtan")
+test_check("riemtanVar")

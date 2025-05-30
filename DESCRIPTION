@@ -1,4 +1,4 @@
-Package: riemtan
+Package: riemtanVar
 Title: Riemannian Metrics for Symmetric Positive Definite Matrices
 Version: 0.2.3
 Authors@R: c(
