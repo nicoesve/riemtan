@@ -32,6 +32,8 @@ This class represents a sample of connectomes, with various properties and metho
 \item{\code{sample_cov}}{Sample covariance}
 
 \item{\code{ref_point}}{Reference point for tangent or vectorized images}
+
+\item{\code{distances}}{Squared distances to the Frechet mean}
 }
 \if{html}{\out{</div>}}
 }
@@ -47,6 +49,7 @@ This class represents a sample of connectomes, with various properties and metho
 \item \href{#method-CSample-change_ref_pt}{\code{CSample$change_ref_pt()}}
 \item \href{#method-CSample-center}{\code{CSample$center()}}
 \item \href{#method-CSample-compute_variation}{\code{CSample$compute_variation()}}
+\item \href{#method-CSample-compute_dists}{\code{CSample$compute_dists()}}
 \item \href{#method-CSample-compute_sample_cov}{\code{CSample$compute_sample_cov()}}
 \item \href{#method-CSample-clone}{\code{CSample$clone()}}
 }
@@ -239,6 +242,23 @@ Compute Variation
 
 \subsection{Details}{
 This function computes the variation of the sample. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary. If the sample is not centered, it centers the sample and recomputes the vectors. Finally, it calculates the variation as the mean of the sum of squares of the vector images. Error if \code{vec_imgs} is not specified.
+}
+
+\subsection{Returns}{
+None. This function is called for its side effects.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-CSample-compute_dists"></a>}}
+\if{latex}{\out{\hypertarget{method-CSample-compute_dists}{}}}
+\subsection{Method \code{compute_dists()}}{
+Compute distances
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{CSample$compute_dists()}\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+This function computes the distances of the elements of the sample to the Frechet mean. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary. If the sample is not centered, it centers the sample and recomputes the vectors. Finally, it calculates the distances as the Euclidean norms of the vector images. Error if \code{vec_imgs} is not specified.
 }
 
 \subsection{Returns}{
