@@ -129,6 +129,14 @@ test_metric <- function(metric_obj, metric_name) {
         sample$compute_sample_cov()
         expect_false(is.null(sample$sample_cov))
         expect_true(isSymmetric(sample$sample_cov))
+
+        # Test dists attribute: initialization, computation, and retrieval
+        expect_null(sample$distances) # Should be NULL at initialization
+        sample$compute_dists()
+        expect_false(is.null(sample$distances))
+        expect_true(is.numeric(sample$distances))
+        expect_equal(length(sample$distances), sample$sample_size)
+        expect_true(all(unlist(sample$distances) >= 0))
     })
 }
 

@@ -9,7 +9,8 @@ CSample <- R6::R6Class(
     conns = NULL, vec_imgs = NULL,
     n = NULL, p = NULL, d = NULL, centered = NULL,
     f_mean = NULL, metric_obj = NULL, var = NULL, s_cov = NULL,
-    tangent_handler = NULL
+    tangent_handler = NULL,
+    dists = NULL
   ),
   public = list(
     #' @description Initialize a CSample object
@@ -47,6 +48,7 @@ CSample <- R6::R6Class(
         private$f_mean <- NULL
         private$var <- NULL
         private$s_cov <- NULL
+        private$dists <- NULL
 
         # If tangent images are provided
       } else if (!is.null(tan_imgs)) {
@@ -66,6 +68,7 @@ CSample <- R6::R6Class(
         private$f_mean <- frechet_mean
         private$var <- NULL
         private$s_cov <- NULL
+        private$dists <- NULL
 
         # Set tangent images in the handler
         private$tangent_handler$set_tangent_images(
@@ -96,6 +99,7 @@ CSample <- R6::R6Class(
         private$f_mean <- frechet_mean
         private$var <- NULL
         private$s_cov <- NULL
+        private$dists <- NULL
         private$tangent_handler$set_reference_point(ref_pt)
       }
     },
@@ -229,6 +233,31 @@ CSample <- R6::R6Class(
         mean()
     },
 
+    #' @description Compute distances
+    #'
+    #' @return None. This function is called for its side effects.
+    #' @details This function computes the distances of the elements of the sample to the Frechet mean. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary. If the sample is not centered, it centers the sample and recomputes the vectors. Finally, it calculates the distances as the Euclidean norms of the vector images. Error if `vec_imgs` is not specified.
+    #' @importFrom matrixStats rowSums2
+    compute_dists = function() {
+      if (self$vector_images |> is.null()) {
+        if (length(private$tangent_handler$tangent_images) == 0) {
+          self$compute_tangents()
+        }
+        self$compute_vecs()
+      }
+
+      if (is.null(self$vector_images)) stop("vec_imgs must be specified.")
+      if (is.null(self$is_centered) || !self$is_centered) {
+        self$compute_unvecs()
+        self$center()
+        self$compute_vecs()
+      }
+      private$dists <- self$vector_images |>
+        (\(x) x^2)() |>
+        matrixStats::rowSums2() |>
+        purrr::map_dbl(sqrt)
+    },
+
     #' @description Compute Sample Covariance
     #'
     #' @details This function computes the sample covariance matrix for the vector images. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary.
@@ -279,6 +308,9 @@ CSample <- R6::R6Class(
     sample_cov = function() private$s_cov,
 
     #' @field ref_point Reference point for tangent or vectorized images
-    ref_point = function() private$tangent_handler$ref_point
+    ref_point = function() private$tangent_handler$ref_point,
+
+    #' @field distances Squared distances to the Frechet mean
+    distances = function() private$dists
   )
 )
