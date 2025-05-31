@@ -170,6 +170,7 @@ compute_frechet_mean <- function(sample, tol = 0.05, max_iter = 20, lr = 0.2, ba
     # Compute delta after all batches in this epoch
     delta <- Matrix::norm(aux_sample$ref_point - sample$ref_point, "F") /
       Matrix::norm(sample$ref_point, "F")
+    message(sprintf("Computing Frechet mean: iteration %d, delta = %f", iter, delta))
   }
   aux_sample$ref_point
 }
