@@ -173,7 +173,7 @@ CSample <- R6::R6Class(
     #'
     #' @return None
     compute_fmean = function(tol = 0.05, max_iter = 20, lr = 0.2, batch_size) {
-      private$f_mean <- compute_frechet_mean(self, tol, max_iter, lr, bath_size)
+      private$f_mean <- compute_frechet_mean(self, tol, max_iter, lr, batch_size)
     },
 
     #' @description
