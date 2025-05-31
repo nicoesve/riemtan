@@ -114,75 +114,76 @@ relocate <- function(old_ref, new_ref, images, met) {
 #'   compute_frechet_mean(sample, tol = 0.01, max_iter = 50, lr = 0.1)
 #' }
 #' @export
-compute_frechet_mean <- function(sample, tol = 0.05, max_iter = 20, lr = 0.2, batch_size = 32) {
-  # Validating parameters
-  if (!is.null(sample$frechet_mean)) {
-    warning("The Frechet mean has already been computed.")
-  }
-  if (length(sample$tangent_images) == 0) {
-    message("tangent images were null, so they will be computed")
-    sample$compute_tangents()
-  }
-  if (!is.numeric(tol)) stop("tol must be a numeric.")
-  if (max_iter < 1) stop("max_iter must be at least 1.")
-
-  aux_sample <- sample
-  delta <- Inf
-  iter <- 0
-  old_diff <- 0
-
-  while ((delta > tol) && (iter < max_iter)) {
-    old_tan <- aux_sample$tangent_images
-    iter <- iter + 1
-    old_ref_pt <- aux_sample$ref_point
-
-    # Shuffle tangent images for batching
-    n <- length(old_tan)
-    idx <- sample(n)
-    old_tan_shuffled <- old_tan[idx]
-
-    # Process in batches
-    for (start in seq(1, n, by = batch_size)) {
-      end <- min(start + batch_size - 1, n)
-      batch <- old_tan_shuffled[start:end]
-
-      # Compute batch step
-      tan_step <- lr * Reduce(`+`, batch) / length(batch)
-      tan_step <- tan_step |>
-        Matrix::symmpart() |>
-        Matrix::pack()
-      new_ref_pt <- aux_sample$riem_metric$exp(old_ref_pt, tan_step)
-
-      # Mapping tangent images to the new step
-      new_tan_imgs <- relocate(
-        old_ref_pt, new_ref_pt, old_tan,
-        sample$riem_metric
-      )
-
-      aux_sample <- CSample$new(
-        tan_imgs = new_tan_imgs,
-        ref_pt = new_ref_pt,
-        centered = FALSE, metric_obj = sample$riem_metric
-      )
-      old_ref_pt <- new_ref_pt
-      old_tan <- new_tan_imgs
+compute_frechet_mean <-
+  function(sample, tol = 0.05, max_iter = 20, lr = 0.2, batch_size = 32) {
+    # Validating parameters
+    if (!is.null(sample$frechet_mean)) {
+      warning("The Frechet mean has already been computed.")
     }
+    if (length(sample$tangent_images) == 0) {
+      message("tangent images were null, so they will be computed")
+      sample$compute_tangents()
+    }
+    if (!is.numeric(tol)) stop("tol must be a numeric.")
+    if (max_iter < 1) stop("max_iter must be at least 1.")
 
-    # Compute delta after all batches in this epoch
-    new_diff <- Matrix::norm(aux_sample$ref_point - sample$ref_point, "F") # /
-    # Matrix::norm(sample$ref_point, "F")
-    delta <- abs(new_diff - old_diff) / old_diff
-    old_diff <- new_diff
+    aux_sample <- sample
+    delta <- Inf
+    iter <- 0
+    old_diff <- 0
 
-    message(sprintf("Computing Frechet mean: iteration %d, delta = %f", iter, delta))
+    while ((delta > tol) && (iter < max_iter)) {
+      old_tan <- aux_sample$tangent_images
+      iter <- iter + 1
+      old_ref_pt <- aux_sample$ref_point
+
+      # Shuffle tangent images for batching
+      n <- length(old_tan)
+      idx <- sample(n)
+      old_tan_shuffled <- old_tan[idx]
+
+      # Process in batches
+      for (start in seq(1, n, by = batch_size)) {
+        end <- min(start + batch_size - 1, n)
+        batch <- old_tan_shuffled[start:end]
+
+        # Compute batch step
+        tan_step <- lr * Reduce(`+`, batch) / length(batch)
+        tan_step <- tan_step |>
+          Matrix::symmpart() |>
+          Matrix::pack()
+        new_ref_pt <- aux_sample$riem_metric$exp(old_ref_pt, tan_step)
+
+        # Mapping tangent images to the new step
+        new_tan_imgs <- relocate(
+          old_ref_pt, new_ref_pt, old_tan,
+          sample$riem_metric
+        )
+
+        aux_sample <- CSample$new(
+          tan_imgs = new_tan_imgs,
+          ref_pt = new_ref_pt,
+          centered = FALSE, metric_obj = sample$riem_metric
+        )
+        old_ref_pt <- new_ref_pt
+        old_tan <- new_tan_imgs
+      }
+
+      # Compute delta after all batches in this epoch
+      new_diff <- Matrix::norm(aux_sample$ref_point - sample$ref_point, "F") # /
+      # Matrix::norm(sample$ref_point, "F")
+      delta <- abs(new_diff - old_diff) / old_diff
+      old_diff <- new_diff
+
+      message(sprintf("Computing Frechet mean: iteration %d, delta = %f", iter, delta))
+    }
+    if (iter == max_iter) {
+      warning(
+        "Maximum number of iterations for Frechet mean calculation reached"
+      )
+    }
+    aux_sample$ref_point
   }
-  if (iter == max_iter) {
-    warning(
-      "Maximum number of iterations for Frechet mean calculation reached"
-    )
-  }
-  aux_sample$ref_point
-}
 
 #' Validate Metric
 #'

@@ -169,10 +169,11 @@ CSample <- R6::R6Class(
     #' @param tol Tolerance for the convergence of the mean (default is 0.05).
     #' @param max_iter Maximum number of iterations for the computation (default is 20).
     #' @param lr Learning rate for the optimization algorithm (default is 0.2).
+    #' @param batch_size The batch size
     #'
     #' @return None
-    compute_fmean = function(tol = 0.05, max_iter = 20, lr = 0.2) {
-      private$f_mean <- compute_frechet_mean(self, tol, max_iter, lr)
+    compute_fmean = function(tol = 0.05, max_iter = 20, lr = 0.2, bath_size) {
+      private$f_mean <- compute_frechet_mean(self, tol, max_iter, lr, bath_size)
     },
 
     #' @description
