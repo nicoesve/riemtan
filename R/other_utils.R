@@ -176,6 +176,11 @@ compute_frechet_mean <- function(sample, tol = 0.05, max_iter = 20, lr = 0.2, ba
 
     message(sprintf("Computing Frechet mean: iteration %d, delta = %f", iter, delta))
   }
+  if (iter == max_iter) {
+    warning(
+      "Maximum number of iterations for Frechet mean calculation reached"
+    )
+  }
   aux_sample$ref_point
 }
 
