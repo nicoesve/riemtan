@@ -129,6 +129,7 @@ compute_frechet_mean <- function(sample, tol = 0.05, max_iter = 20, lr = 0.2, ba
   aux_sample <- sample
   delta <- Inf
   iter <- 0
+  old_diff <- 0
 
   while ((delta > tol) && (iter < max_iter)) {
     old_tan <- aux_sample$tangent_images
@@ -168,8 +169,11 @@ compute_frechet_mean <- function(sample, tol = 0.05, max_iter = 20, lr = 0.2, ba
     }
 
     # Compute delta after all batches in this epoch
-    delta <- Matrix::norm(aux_sample$ref_point - sample$ref_point, "F") /
-      Matrix::norm(sample$ref_point, "F")
+    new_diff <- Matrix::norm(aux_sample$ref_point - sample$ref_point, "F") # /
+    # Matrix::norm(sample$ref_point, "F")
+    delta <- abs(new_diff - old_diff) / old_diff
+    old_diff <- new_diff
+
     message(sprintf("Computing Frechet mean: iteration %d, delta = %f", iter, delta))
   }
   aux_sample$ref_point
