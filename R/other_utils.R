@@ -451,13 +451,8 @@ dexp <- function(a, x) {
 #' @export
 safe_logm <- function(x) {
   x <- as.matrix(x)
-  tryCatch(
-    expm::logm(x, method = "Eigen"),
-    error = function(e) {
-      message(e)
-      expm::logm(x, method = "Higham08")
-    }
-  )
+  result <- safe_logm_cpp(x)
+  as.matrix(result)
 }
 
 #' Default reference point

@@ -45,11 +45,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// safe_logm_cpp
+arma::mat safe_logm_cpp(const arma::mat& X);
+RcppExport SEXP _riemtan_safe_logm_cpp(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(safe_logm_cpp(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_riemtan_vec_at_id_fast", (DL_FUNC) &_riemtan_vec_at_id_fast, 1},
     {"_riemtan_similarity_transform", (DL_FUNC) &_riemtan_similarity_transform, 2},
     {"_riemtan_symmpart_fast", (DL_FUNC) &_riemtan_symmpart_fast, 1},
+    {"_riemtan_safe_logm_cpp", (DL_FUNC) &_riemtan_safe_logm_cpp, 1},
     {NULL, NULL, 0}
 };
 

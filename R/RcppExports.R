@@ -13,3 +13,7 @@ symmpart_fast <- function(A) {
     .Call(`_riemtan_symmpart_fast`, A)
 }
 
+safe_logm_cpp <- function(X) {
+    .Call(`_riemtan_safe_logm_cpp`, X)
+}
+
