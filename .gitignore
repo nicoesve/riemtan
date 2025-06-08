@@ -3,4 +3,8 @@
 #docs/
 .devcontainer/
 
+# Ignore compiled object files
+*.o
+*.so
+
 CLAUDE.md
