@@ -10,25 +10,16 @@
 log_cholesky_log <- function(sigma, lambda) {
   validate_log_args(sigma, lambda)
 
-  # Compute Cholesky decompositions - get lower triangular factors
-  l_ref <- sigma |>
-    chol() |>
-    t()
-  l_mfd <- lambda |>
-    chol() |>
-    t()
+  # Convert to dense matrices for C++ computation
+  sigma_dense <- as.matrix(sigma)
+  lambda_dense <- as.matrix(lambda)
 
-  # Compute off-diagonal difference and diagonal terms
-  lower_diff <- l_mfd - l_ref
-  diag_ratio <- diag(l_mfd) / diag(l_ref)
-  diag_terms <- diag(l_ref) * log(diag_ratio)
+  # Call C++ implementation
+  result <- log_cholesky_log_cpp(sigma_dense, lambda_dense)
 
-  # Set diagonal terms
-  diag(lower_diff) <- diag_terms
-
-  # Project to SPD tangent space and return
-  result <- l_ref %*% t(lower_diff) + lower_diff %*% t(l_ref)
+  # Convert result to R matrix and then to packed symmetric matrix format
   result |>
+    as.matrix() |>
     Matrix::symmpart() |>
     Matrix::pack()
 }

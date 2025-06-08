@@ -17,3 +17,7 @@ safe_logm_cpp <- function(X) {
     .Call(`_riemtan_safe_logm_cpp`, X)
 }
 
+log_cholesky_log_cpp <- function(sigma, lambda) {
+    .Call(`_riemtan_log_cholesky_log_cpp`, sigma, lambda)
+}
+
