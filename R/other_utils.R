@@ -82,8 +82,9 @@ rspdnorm <- function(n, refpt, disp, met) {
 #' }
 #' @export
 relocate <- function(old_ref, new_ref, images, met) {
-  images |> furrr::future_map(
-    \(tan) met$exp(old_ref, tan) |> met$log(sigma = new_ref, lambda = _)
+  parallel::mclapply(images, 
+    \(tan) met$exp(old_ref, tan) |> met$log(sigma = new_ref, lambda = _),
+    mc.cores = parallel::detectCores() - 1
   )
 }
 
