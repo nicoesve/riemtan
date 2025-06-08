@@ -100,18 +100,9 @@ vec_at_id <- function(v) {
     stop("v should be an object of class dspMatrix")
   }
 
-  w <- v@x
-  w <- sqrt(2) * w
-  for (i in 1:v@Dim[1]) {
-    w[i * (i + 1) / 2] <- w[i * (i + 1) / 2] / sqrt(2)
-  }
-  upper_part <- vector("numeric", length = v@Dim[1] * (v@Dim[1] + 1) / 2)
-  for (i in 1:v@Dim[1]) {
-    for (j in 1:i) {
-      upper_part[j + i * (i - 1) / 2] <- w[j + i * (i - 1) / 2]
-    }
-  }
-  return(upper_part)
+  # Use optimized C++ implementation
+  v_mat <- as.matrix(v)
+  as.numeric(vec_at_id_fast(v_mat))
 }
 
 #' Compute the AIRM Vectorization of Tangent Space

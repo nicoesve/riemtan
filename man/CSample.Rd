@@ -172,7 +172,7 @@ None
 \subsection{Method \code{compute_fmean()}}{
 This function computes the Frechet mean of the sample.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CSample$compute_fmean(tol = 0.05, max_iter = 20, lr = 0.2)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CSample$compute_fmean(tol = 0.05, max_iter = 20, lr = 0.2, batch_size = 32)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -183,6 +183,8 @@ This function computes the Frechet mean of the sample.
 \item{\code{max_iter}}{Maximum number of iterations for the computation (default is 20).}
 
 \item{\code{lr}}{Learning rate for the optimization algorithm (default is 0.2).}
+
+\item{\code{batch_size}}{The batch size}
 }
 \if{html}{\out{</div>}}
 }
