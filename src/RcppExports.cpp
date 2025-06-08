@@ -68,6 +68,54 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_cholesky_exp_cpp
+arma::mat log_cholesky_exp_cpp(const arma::mat& sigma, const arma::mat& v);
+RcppExport SEXP _riemtan_log_cholesky_exp_cpp(SEXP sigmaSEXP, SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_cholesky_exp_cpp(sigma, v));
+    return rcpp_result_gen;
+END_RCPP
+}
+// spd_isometry_to_identity_cpp
+arma::mat spd_isometry_to_identity_cpp(const arma::mat& sigma, const arma::mat& v);
+RcppExport SEXP _riemtan_spd_isometry_to_identity_cpp(SEXP sigmaSEXP, SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(spd_isometry_to_identity_cpp(sigma, v));
+    return rcpp_result_gen;
+END_RCPP
+}
+// spd_isometry_from_identity_cpp
+arma::mat spd_isometry_from_identity_cpp(const arma::mat& sigma, const arma::mat& v);
+RcppExport SEXP _riemtan_spd_isometry_from_identity_cpp(SEXP sigmaSEXP, SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(spd_isometry_from_identity_cpp(sigma, v));
+    return rcpp_result_gen;
+END_RCPP
+}
+// scale_vector_for_unvec_cpp
+arma::vec scale_vector_for_unvec_cpp(const arma::vec& w, int n);
+RcppExport SEXP _riemtan_scale_vector_for_unvec_cpp(SEXP wSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type w(wSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(scale_vector_for_unvec_cpp(w, n));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_riemtan_vec_at_id_fast", (DL_FUNC) &_riemtan_vec_at_id_fast, 1},
@@ -75,6 +123,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_riemtan_symmpart_fast", (DL_FUNC) &_riemtan_symmpart_fast, 1},
     {"_riemtan_safe_logm_cpp", (DL_FUNC) &_riemtan_safe_logm_cpp, 1},
     {"_riemtan_log_cholesky_log_cpp", (DL_FUNC) &_riemtan_log_cholesky_log_cpp, 2},
+    {"_riemtan_log_cholesky_exp_cpp", (DL_FUNC) &_riemtan_log_cholesky_exp_cpp, 2},
+    {"_riemtan_spd_isometry_to_identity_cpp", (DL_FUNC) &_riemtan_spd_isometry_to_identity_cpp, 2},
+    {"_riemtan_spd_isometry_from_identity_cpp", (DL_FUNC) &_riemtan_spd_isometry_from_identity_cpp, 2},
+    {"_riemtan_scale_vector_for_unvec_cpp", (DL_FUNC) &_riemtan_scale_vector_for_unvec_cpp, 2},
     {NULL, NULL, 0}
 };
 

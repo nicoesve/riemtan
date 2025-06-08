@@ -21,3 +21,19 @@ log_cholesky_log_cpp <- function(sigma, lambda) {
     .Call(`_riemtan_log_cholesky_log_cpp`, sigma, lambda)
 }
 
+log_cholesky_exp_cpp <- function(sigma, v) {
+    .Call(`_riemtan_log_cholesky_exp_cpp`, sigma, v)
+}
+
+spd_isometry_to_identity_cpp <- function(sigma, v) {
+    .Call(`_riemtan_spd_isometry_to_identity_cpp`, sigma, v)
+}
+
+spd_isometry_from_identity_cpp <- function(sigma, v) {
+    .Call(`_riemtan_spd_isometry_from_identity_cpp`, sigma, v)
+}
+
+scale_vector_for_unvec_cpp <- function(w, n) {
+    .Call(`_riemtan_scale_vector_for_unvec_cpp`, w, n)
+}
+

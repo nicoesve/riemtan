@@ -36,29 +36,17 @@ log_cholesky_log <- function(sigma, lambda) {
 log_cholesky_exp <- function(sigma, v) {
   validate_exp_args(sigma, v)
 
-  # Compute Cholesky decomposition - get lower triangular factor
-  l_ref <- sigma |>
-    chol() |>
-    t()
+  # Convert to dense matrices for C++ computation
+  sigma_dense <- as.matrix(sigma)
+  v_dense <- as.matrix(v)
 
-  # Transform tangent vector to Cholesky space
-  l_inv <- solve(l_ref)
-  temp <- l_inv %*% v %*% t(l_inv)
-  temp_under_half <- temp |> half_underscore()
-  x_l <- l_ref %*% temp_under_half
-  x_l <- Matrix::tril(x_l)
+  # Call C++ implementation
+  result <- log_cholesky_exp_cpp(sigma_dense, v_dense)
 
-  # Compute off-diagonal difference and diagonal terms
-  lower_sum <- (x_l + l_ref) |> as.matrix()
-  diag_ratio <- diag(x_l |> as.matrix()) / diag(l_ref |> as.matrix())
-  diag_terms <- diag(l_ref |> as.matrix()) * exp(diag_ratio |> as.matrix())
-
-  # Set diagonal terms
-  diag(lower_sum) <- diag_terms
-
-  # Return SPD matrix
-  aux <- (lower_sum %*% t(lower_sum))
-  aux_2 <- aux |>
+  # Convert result to R matrix and ensure positive definiteness
+  aux_2 <- result |>
+    as.matrix() |>
+    Matrix::symmpart() |>
     Matrix::nearPD() |>
     _$mat
   aux_2 |> Matrix::pack()
@@ -73,20 +61,16 @@ log_cholesky_exp <- function(sigma, v) {
 spd_isometry_to_identity <- function(sigma, v) {
   validate_vec_args(sigma, v)
 
-  l_ref <- sigma |>
-    chol() |>
-    t()
-  lchol_inv <- l_ref |> (\(x) (1 / diag(x |> as.matrix())) - Matrix::tril(x, -1))()
+  # Convert to dense matrices for C++ computation
+  sigma_dense <- as.matrix(sigma)
+  v_dense <- as.matrix(v)
 
-  l_inv <- solve(l_ref)
-  temp <- l_inv %*% v %*% t(l_inv)
-  temp_under_half <- temp |> half_underscore()
-  x_l <- l_ref %*% temp_under_half
+  # Call C++ implementation
+  result <- spd_isometry_to_identity_cpp(sigma_dense, v_dense)
 
-  tan_version <- Matrix::tril(x_l, -1) |> as.matrix()
-  diag(tan_version) <- diag(lchol_inv |> as.matrix()) * diag(x_l |> as.matrix())
-
-  (2 * tan_version) |>
+  # Convert result to R matrix and pack
+  result |>
+    as.matrix() |>
     Matrix::symmpart() |>
     Matrix::pack()
 }
@@ -115,17 +99,16 @@ log_cholesky_vec <- function(sigma, v) {
 spd_isometry_from_identity <- function(sigma, v) {
   validate_vec_args(sigma, v)
 
-  # Get Cholesky decomposition
-  l_ref <- sigma |>
-    chol() |>
-    t()
+  # Convert to dense matrices for C++ computation
+  sigma_dense <- as.matrix(sigma)
+  v_dense <- as.matrix(v)
 
-  x_l <- half_underscore(v)
-  tan_version <- Matrix::tril(x_l, -1) |> as.matrix()
-  diag(tan_version) <- diag(l_ref |> as.matrix()) * diag(x_l |> as.matrix())
+  # Call C++ implementation
+  result <- spd_isometry_from_identity_cpp(sigma_dense, v_dense)
 
-  aux <- l_ref %*% t(tan_version) + tan_version %*% t(l_ref)
-  aux |>
+  # Convert result to R matrix and pack
+  result |>
+    as.matrix() |>
     Matrix::symmpart() |>
     Matrix::pack()
 }
@@ -139,12 +122,8 @@ spd_isometry_from_identity <- function(sigma, v) {
 log_cholesky_unvec <- function(sigma, w) {
   validate_unvec_args(sigma, w)
 
-  # First undo vec_at_id like in airm_unvec
-  w_scaled <- w
-  for (i in 1:sigma@Dim[1]) {
-    w_scaled[i * (i + 1) / 2] <- w_scaled[i * (i + 1) / 2] * sqrt(2)
-  }
-  w_scaled <- w_scaled / sqrt(2)
+  # First undo vec_at_id like in airm_unvec using C++ implementation
+  w_scaled <- scale_vector_for_unvec_cpp(w, sigma@Dim[1]) |> as.vector()
 
   # Create matrix and reverse isometry
   methods::new(
