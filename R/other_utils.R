@@ -411,18 +411,14 @@ dlog <- function(sigma, h) {
     stop("H must be a symmetric matrix of class dspMatrix")
   }
 
-  aux_matr <- sigma |> id_matr()
-  n <- sigma |> nrow()
-  t_vals <- seq(0, 1, length.out = 100) # Integration points
-  dt <- t_vals[2] - t_vals[1]
-
-  result <- Matrix::Matrix(0, n, n, sparse = FALSE)
-  for (t in t_vals) {
-    gamma_t <- t * sigma + (1 - t) * aux_matr
-    gamma_t_inv <- Matrix::solve(gamma_t)
-    result <- result + gamma_t_inv %*% h %*% gamma_t_inv * dt
-  }
-
+  # Convert to dense matrices for C++ computation
+  sigma_mat <- as.matrix(sigma)
+  h_mat <- as.matrix(h)
+  
+  # Call C++ implementation
+  result <- dlog_cpp(sigma_mat, h_mat, num_points = 100)
+  
+  # Convert back to symmetric packed format
   result |>
     Matrix::symmpart() |>
     Matrix::pack()
@@ -444,21 +440,14 @@ dexp <- function(a, x) {
     stop("x must be a symmetric matrix of class dspMatrix")
   }
 
-  n <- a |> nrow()
-  t_vals <- seq(0, 1, length.out = 100) # Integration points
-  dt <- t_vals[2] - t_vals[1]
-
-  result <- Matrix::Matrix(0, n, n, sparse = FALSE)
-  for (t in t_vals) {
-    gamma_left <- ((1 - t) * a) |>
-      as.matrix() |>
-      expm::expm(method = "hybrid_Eigen_Ward")
-    gamma_right <- (t * a) |>
-      as.matrix() |>
-      expm::expm(method = "hybrid_Eigen_Ward")
-    result <- result + gamma_left %*% x %*% gamma_right * dt
-  }
-
+  # Convert to dense matrices for C++ computation
+  a_mat <- as.matrix(a)
+  x_mat <- as.matrix(x)
+  
+  # Call C++ implementation
+  result <- dexp_cpp(a_mat, x_mat, num_points = 100)
+  
+  # Convert back to symmetric packed format
   result |>
     Matrix::symmpart() |>
     Matrix::pack()

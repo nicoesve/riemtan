@@ -28,7 +28,6 @@ Depends:
 Imports: 
     Matrix,
     methods,
-    expm,
     R6,
     purrr,
     MASS,

@@ -33,6 +33,14 @@ airm_unvec_cpp <- function(sigma, w) {
     .Call(`_riemtan_airm_unvec_cpp`, sigma, w)
 }
 
+bures_wasserstein_log_cpp <- function(sigma, lambda) {
+    .Call(`_riemtan_bures_wasserstein_log_cpp`, sigma, lambda)
+}
+
+bures_wasserstein_exp_cpp <- function(sigma, v) {
+    .Call(`_riemtan_bures_wasserstein_exp_cpp`, sigma, v)
+}
+
 log_cholesky_log_cpp <- function(sigma, lambda) {
     .Call(`_riemtan_log_cholesky_log_cpp`, sigma, lambda)
 }
@@ -51,5 +59,21 @@ spd_isometry_from_identity_cpp <- function(sigma, v) {
 
 scale_vector_for_unvec_cpp <- function(w, n) {
     .Call(`_riemtan_scale_vector_for_unvec_cpp`, w, n)
+}
+
+log_euclidean_log_cpp <- function(sigma, lambda) {
+    .Call(`_riemtan_log_euclidean_log_cpp`, sigma, lambda)
+}
+
+log_euclidean_exp_cpp <- function(ref_pt, v) {
+    .Call(`_riemtan_log_euclidean_exp_cpp`, ref_pt, v)
+}
+
+dexp_cpp <- function(a, x, num_points = 100L) {
+    .Call(`_riemtan_dexp_cpp`, a, x, num_points)
+}
+
+dlog_cpp <- function(sigma, h, num_points = 100L) {
+    .Call(`_riemtan_dlog_cpp`, sigma, h, num_points)
 }
 
