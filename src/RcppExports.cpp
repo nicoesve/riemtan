@@ -104,6 +104,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// bures_wasserstein_log_cpp
+arma::mat bures_wasserstein_log_cpp(const arma::mat& sigma, const arma::mat& lambda);
+RcppExport SEXP _riemtan_bures_wasserstein_log_cpp(SEXP sigmaSEXP, SEXP lambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type lambda(lambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(bures_wasserstein_log_cpp(sigma, lambda));
+    return rcpp_result_gen;
+END_RCPP
+}
+// bures_wasserstein_exp_cpp
+arma::mat bures_wasserstein_exp_cpp(const arma::mat& sigma, const arma::mat& v);
+RcppExport SEXP _riemtan_bures_wasserstein_exp_cpp(SEXP sigmaSEXP, SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(bures_wasserstein_exp_cpp(sigma, v));
+    return rcpp_result_gen;
+END_RCPP
+}
 // log_cholesky_log_cpp
 arma::mat log_cholesky_log_cpp(const arma::mat& sigma, const arma::mat& lambda);
 RcppExport SEXP _riemtan_log_cholesky_log_cpp(SEXP sigmaSEXP, SEXP lambdaSEXP) {
@@ -164,6 +188,56 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_euclidean_log_cpp
+arma::mat log_euclidean_log_cpp(const arma::mat& sigma, const arma::mat& lambda);
+RcppExport SEXP _riemtan_log_euclidean_log_cpp(SEXP sigmaSEXP, SEXP lambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type lambda(lambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_euclidean_log_cpp(sigma, lambda));
+    return rcpp_result_gen;
+END_RCPP
+}
+// log_euclidean_exp_cpp
+arma::mat log_euclidean_exp_cpp(const arma::mat& ref_pt, const arma::mat& v);
+RcppExport SEXP _riemtan_log_euclidean_exp_cpp(SEXP ref_ptSEXP, SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type ref_pt(ref_ptSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_euclidean_exp_cpp(ref_pt, v));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dexp_cpp
+arma::mat dexp_cpp(const arma::mat& a, const arma::mat& x, int num_points);
+RcppExport SEXP _riemtan_dexp_cpp(SEXP aSEXP, SEXP xSEXP, SEXP num_pointsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type num_points(num_pointsSEXP);
+    rcpp_result_gen = Rcpp::wrap(dexp_cpp(a, x, num_points));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dlog_cpp
+arma::mat dlog_cpp(const arma::mat& sigma, const arma::mat& h, int num_points);
+RcppExport SEXP _riemtan_dlog_cpp(SEXP sigmaSEXP, SEXP hSEXP, SEXP num_pointsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type h(hSEXP);
+    Rcpp::traits::input_parameter< int >::type num_points(num_pointsSEXP);
+    rcpp_result_gen = Rcpp::wrap(dlog_cpp(sigma, h, num_points));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_riemtan_vec_at_id_fast", (DL_FUNC) &_riemtan_vec_at_id_fast, 1},
@@ -174,11 +248,17 @@ static const R_CallMethodDef CallEntries[] = {
     {"_riemtan_airm_exp_cpp", (DL_FUNC) &_riemtan_airm_exp_cpp, 2},
     {"_riemtan_airm_vec_cpp", (DL_FUNC) &_riemtan_airm_vec_cpp, 2},
     {"_riemtan_airm_unvec_cpp", (DL_FUNC) &_riemtan_airm_unvec_cpp, 2},
+    {"_riemtan_bures_wasserstein_log_cpp", (DL_FUNC) &_riemtan_bures_wasserstein_log_cpp, 2},
+    {"_riemtan_bures_wasserstein_exp_cpp", (DL_FUNC) &_riemtan_bures_wasserstein_exp_cpp, 2},
     {"_riemtan_log_cholesky_log_cpp", (DL_FUNC) &_riemtan_log_cholesky_log_cpp, 2},
     {"_riemtan_log_cholesky_exp_cpp", (DL_FUNC) &_riemtan_log_cholesky_exp_cpp, 2},
     {"_riemtan_spd_isometry_to_identity_cpp", (DL_FUNC) &_riemtan_spd_isometry_to_identity_cpp, 2},
     {"_riemtan_spd_isometry_from_identity_cpp", (DL_FUNC) &_riemtan_spd_isometry_from_identity_cpp, 2},
     {"_riemtan_scale_vector_for_unvec_cpp", (DL_FUNC) &_riemtan_scale_vector_for_unvec_cpp, 2},
+    {"_riemtan_log_euclidean_log_cpp", (DL_FUNC) &_riemtan_log_euclidean_log_cpp, 2},
+    {"_riemtan_log_euclidean_exp_cpp", (DL_FUNC) &_riemtan_log_euclidean_exp_cpp, 2},
+    {"_riemtan_dexp_cpp", (DL_FUNC) &_riemtan_dexp_cpp, 3},
+    {"_riemtan_dlog_cpp", (DL_FUNC) &_riemtan_dlog_cpp, 3},
     {NULL, NULL, 0}
 };
 
