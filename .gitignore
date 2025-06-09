@@ -4,7 +4,7 @@
 .devcontainer/
 
 # Ignore compiled object files
-*.o
-*.so
+src/*.o
+src/*.so
 
 CLAUDE.md
