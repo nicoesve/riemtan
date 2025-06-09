@@ -23,20 +23,19 @@
 airm_log <- function(sigma, lambda) {
   validate_log_args(sigma, lambda)
 
-  sigma_sqrt <- expm::sqrtm(sigma) |>
-    Matrix::nearPD() |>
-    _$mat
+  # Convert to dense matrices for C++ computation
+  sigma_mat <- as.matrix(sigma)
+  lambda_mat <- as.matrix(lambda)
 
-  sigma_sqrt_inv <- Matrix::solve(sigma_sqrt)
+  # Use optimized C++ implementation
+  result <- airm_log_cpp(sigma_mat, lambda_mat)
 
-  lambda |>
-    (\(x) sigma_sqrt_inv %*% x %*% sigma_sqrt_inv)() |>
-    Matrix::symmpart() |>
-    as.matrix() |>
-    safe_logm() |>
-    (\(x) sigma_sqrt %*% x %*% sigma_sqrt)() |>
+  # Convert back to Matrix format and ensure positive definiteness
+  result |>
     Matrix::Matrix(sparse = FALSE, doDiag = FALSE) |>
-    Matrix::symmpart() |>
+    Matrix::nearPD() |>
+    _$mat |>
+    # Matrix::symmpart() |>
     Matrix::pack()
 }
 
@@ -64,16 +63,16 @@ airm_log <- function(sigma, lambda) {
 airm_exp <- function(sigma, v) {
   validate_exp_args(sigma, v)
 
-  sigma_sqrt <- expm::sqrtm(sigma) |>
-    Matrix::nearPD() |>
-    _$mat
-  sigma_sqrt_inv <- Matrix::solve(sigma_sqrt)
-  v |>
-    (\(x) sigma_sqrt_inv %*% x %*% sigma_sqrt_inv)() |>
-    Matrix::symmpart() |>
-    as.matrix() |>
-    expm::expm(method = "hybrid_Eigen_Ward") |>
-    (\(x) sigma_sqrt %*% x %*% sigma_sqrt)() |>
+  # Convert to dense matrices for C++ computation
+  sigma_mat <- as.matrix(sigma)
+  v_mat <- as.matrix(v)
+
+  # Use optimized C++ implementation
+  result <- airm_exp_cpp(sigma_mat, v_mat)
+
+  # Convert back to Matrix format and ensure positive definiteness
+  result |>
+    Matrix::Matrix(sparse = FALSE, doDiag = FALSE) |>
     Matrix::nearPD() |>
     _$mat |>
     Matrix::pack()
@@ -129,16 +128,12 @@ vec_at_id <- function(v) {
 airm_vec <- function(sigma, v) {
   validate_vec_args(sigma, v)
 
-  sigma_sqrt <- expm::sqrtm(sigma) |>
-    Matrix::nearPD() |>
-    _$mat
-  sigma_sqrt_inv <- Matrix::solve(sigma_sqrt)
-  v |>
-    (\(x) sigma_sqrt_inv %*% x %*% sigma_sqrt_inv)() |>
-    Matrix::Matrix(sparse = FALSE, doDiag = FALSE) |>
-    Matrix::symmpart() |>
-    Matrix::pack() |>
-    vec_at_id()
+  # Convert to dense matrices for C++ computation
+  sigma_mat <- as.matrix(sigma)
+  v_mat <- as.matrix(v)
+
+  # Use optimized C++ implementation
+  airm_vec_cpp(sigma_mat, v_mat)
 }
 
 #' Compute the Inverse Vectorization (AIRM)
@@ -163,19 +158,14 @@ airm_vec <- function(sigma, v) {
 airm_unvec <- function(sigma, w) {
   validate_unvec_args(sigma, w)
 
-  sigma_sqrt <- expm::sqrtm(sigma) |>
-    Matrix::nearPD() |>
-    _$mat
-  for (i in 1:sigma@Dim[1]) {
-    w[i * (i + 1) / 2] <- w[i * (i + 1) / 2] * sqrt(2)
-  }
-  w <- w / sqrt(2)
-  methods::new(
-    "dspMatrix",
-    x = w,
-    Dim = as.integer(c(sigma@Dim[1], sigma@Dim[1]))
-  ) |>
-    (\(x) sigma_sqrt %*% x %*% sigma_sqrt)() |>
+  # Convert to dense matrix for C++ computation
+  sigma_mat <- as.matrix(sigma)
+  
+  # Use optimized C++ implementation
+  result <- airm_unvec_cpp(sigma_mat, w)
+  
+  # Convert back to Matrix format
+  result |>
     Matrix::Matrix(sparse = FALSE, doDiag = FALSE) |>
     Matrix::symmpart() |>
     Matrix::pack()

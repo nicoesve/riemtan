@@ -17,6 +17,22 @@ safe_logm_cpp <- function(X) {
     .Call(`_riemtan_safe_logm_cpp`, X)
 }
 
+airm_log_cpp <- function(sigma, lambda) {
+    .Call(`_riemtan_airm_log_cpp`, sigma, lambda)
+}
+
+airm_exp_cpp <- function(sigma, v) {
+    .Call(`_riemtan_airm_exp_cpp`, sigma, v)
+}
+
+airm_vec_cpp <- function(sigma, v) {
+    .Call(`_riemtan_airm_vec_cpp`, sigma, v)
+}
+
+airm_unvec_cpp <- function(sigma, w) {
+    .Call(`_riemtan_airm_unvec_cpp`, sigma, w)
+}
+
 log_cholesky_log_cpp <- function(sigma, lambda) {
     .Call(`_riemtan_log_cholesky_log_cpp`, sigma, lambda)
 }

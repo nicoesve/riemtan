@@ -56,6 +56,54 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// airm_log_cpp
+arma::mat airm_log_cpp(const arma::mat& sigma, const arma::mat& lambda);
+RcppExport SEXP _riemtan_airm_log_cpp(SEXP sigmaSEXP, SEXP lambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type lambda(lambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(airm_log_cpp(sigma, lambda));
+    return rcpp_result_gen;
+END_RCPP
+}
+// airm_exp_cpp
+arma::mat airm_exp_cpp(const arma::mat& sigma, const arma::mat& v);
+RcppExport SEXP _riemtan_airm_exp_cpp(SEXP sigmaSEXP, SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(airm_exp_cpp(sigma, v));
+    return rcpp_result_gen;
+END_RCPP
+}
+// airm_vec_cpp
+arma::vec airm_vec_cpp(const arma::mat& sigma, const arma::mat& v);
+RcppExport SEXP _riemtan_airm_vec_cpp(SEXP sigmaSEXP, SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(airm_vec_cpp(sigma, v));
+    return rcpp_result_gen;
+END_RCPP
+}
+// airm_unvec_cpp
+arma::mat airm_unvec_cpp(const arma::mat& sigma, const arma::vec& w);
+RcppExport SEXP _riemtan_airm_unvec_cpp(SEXP sigmaSEXP, SEXP wSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type w(wSEXP);
+    rcpp_result_gen = Rcpp::wrap(airm_unvec_cpp(sigma, w));
+    return rcpp_result_gen;
+END_RCPP
+}
 // log_cholesky_log_cpp
 arma::mat log_cholesky_log_cpp(const arma::mat& sigma, const arma::mat& lambda);
 RcppExport SEXP _riemtan_log_cholesky_log_cpp(SEXP sigmaSEXP, SEXP lambdaSEXP) {
@@ -122,6 +170,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_riemtan_similarity_transform", (DL_FUNC) &_riemtan_similarity_transform, 2},
     {"_riemtan_symmpart_fast", (DL_FUNC) &_riemtan_symmpart_fast, 1},
     {"_riemtan_safe_logm_cpp", (DL_FUNC) &_riemtan_safe_logm_cpp, 1},
+    {"_riemtan_airm_log_cpp", (DL_FUNC) &_riemtan_airm_log_cpp, 2},
+    {"_riemtan_airm_exp_cpp", (DL_FUNC) &_riemtan_airm_exp_cpp, 2},
+    {"_riemtan_airm_vec_cpp", (DL_FUNC) &_riemtan_airm_vec_cpp, 2},
+    {"_riemtan_airm_unvec_cpp", (DL_FUNC) &_riemtan_airm_unvec_cpp, 2},
     {"_riemtan_log_cholesky_log_cpp", (DL_FUNC) &_riemtan_log_cholesky_log_cpp, 2},
     {"_riemtan_log_cholesky_exp_cpp", (DL_FUNC) &_riemtan_log_cholesky_exp_cpp, 2},
     {"_riemtan_spd_isometry_to_identity_cpp", (DL_FUNC) &_riemtan_spd_isometry_to_identity_cpp, 2},

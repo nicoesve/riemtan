@@ -63,3 +63,139 @@ arma::mat safe_logm_cpp(const arma::mat& X) {
     }
   }
 }
+
+// Optimized AIRM logarithm computation
+// [[Rcpp::export]]
+arma::mat airm_log_cpp(const arma::mat& sigma, const arma::mat& lambda) {
+  // Compute matrix square root of sigma
+  arma::mat sigma_sqrt;
+  try {
+    sigma_sqrt = arma::sqrtmat_sympd(sigma);
+  } catch (const std::exception& e) {
+    Rcpp::stop("Failed to compute matrix square root of sigma");
+  }
+  
+  // Compute inverse of sigma_sqrt
+  arma::mat sigma_sqrt_inv;
+  try {
+    sigma_sqrt_inv = arma::inv_sympd(sigma_sqrt);
+  } catch (const std::exception& e) {
+    Rcpp::stop("Failed to compute inverse of sigma square root");
+  }
+  
+  // Compute similarity transform: sigma_sqrt_inv * lambda * sigma_sqrt_inv
+  arma::mat temp = similarity_transform(sigma_sqrt_inv, lambda);
+  
+  // Ensure symmetry
+  temp = symmpart_fast(temp);
+  
+  // Compute matrix logarithm
+  arma::mat log_temp = safe_logm_cpp(temp);
+  
+  // Final similarity transform: sigma_sqrt * log_temp * sigma_sqrt
+  arma::mat result = similarity_transform(sigma_sqrt, log_temp);
+  
+  return result;
+}
+
+// Optimized AIRM exponential computation
+// [[Rcpp::export]]
+arma::mat airm_exp_cpp(const arma::mat& sigma, const arma::mat& v) {
+  // Compute matrix square root of sigma
+  arma::mat sigma_sqrt;
+  try {
+    sigma_sqrt = arma::sqrtmat_sympd(sigma);
+  } catch (const std::exception& e) {
+    Rcpp::stop("Failed to compute matrix square root of sigma");
+  }
+  
+  // Compute inverse of sigma_sqrt
+  arma::mat sigma_sqrt_inv;
+  try {
+    sigma_sqrt_inv = arma::inv_sympd(sigma_sqrt);
+  } catch (const std::exception& e) {
+    Rcpp::stop("Failed to compute inverse of sigma square root");
+  }
+  
+  // Compute similarity transform: sigma_sqrt_inv * v * sigma_sqrt_inv
+  arma::mat temp = similarity_transform(sigma_sqrt_inv, v);
+  
+  // Ensure symmetry
+  temp = symmpart_fast(temp);
+  
+  // Compute matrix exponential
+  arma::mat exp_temp = arma::expmat_sym(temp);
+  
+  // Final similarity transform: sigma_sqrt * exp_temp * sigma_sqrt
+  arma::mat result = similarity_transform(sigma_sqrt, exp_temp);
+  
+  return result;
+}
+
+// Optimized AIRM vectorization computation
+// [[Rcpp::export]]
+arma::vec airm_vec_cpp(const arma::mat& sigma, const arma::mat& v) {
+  // Compute matrix square root of sigma
+  arma::mat sigma_sqrt;
+  try {
+    sigma_sqrt = arma::sqrtmat_sympd(sigma);
+  } catch (const std::exception& e) {
+    Rcpp::stop("Failed to compute matrix square root of sigma");
+  }
+  
+  // Compute inverse of sigma_sqrt
+  arma::mat sigma_sqrt_inv;
+  try {
+    sigma_sqrt_inv = arma::inv_sympd(sigma_sqrt);
+  } catch (const std::exception& e) {
+    Rcpp::stop("Failed to compute inverse of sigma square root");
+  }
+  
+  // Compute similarity transform: sigma_sqrt_inv * v * sigma_sqrt_inv
+  arma::mat temp = similarity_transform(sigma_sqrt_inv, v);
+  
+  // Ensure symmetry
+  temp = symmpart_fast(temp);
+  
+  // Use existing vec_at_id_fast function to vectorize
+  return vec_at_id_fast(temp);
+}
+
+// Forward declaration for scale_vector_for_unvec_cpp
+arma::vec scale_vector_for_unvec_cpp(const arma::vec& w, int n);
+
+// Optimized AIRM unvec (inverse vectorization) computation
+// [[Rcpp::export]]
+arma::mat airm_unvec_cpp(const arma::mat& sigma, const arma::vec& w) {
+  int n = sigma.n_rows;
+  
+  // Compute matrix square root of sigma
+  arma::mat sigma_sqrt;
+  try {
+    sigma_sqrt = arma::sqrtmat_sympd(sigma);
+  } catch (const std::exception& e) {
+    Rcpp::stop("Failed to compute matrix square root of sigma");
+  }
+  
+  // Scale the vector using the existing function
+  arma::vec w_scaled = scale_vector_for_unvec_cpp(w, n);
+  
+  // Create symmetric matrix from scaled vector
+  arma::mat temp(n, n, arma::fill::zeros);
+  int idx = 0;
+  for (int j = 0; j < n; j++) {
+    for (int i = j; i < n; i++) {
+      temp(i, j) = w_scaled(idx);
+      if (i != j) {
+        temp(j, i) = w_scaled(idx);
+      }
+      idx++;
+    }
+  }
+  
+  // Final similarity transform: sigma_sqrt * temp * sigma_sqrt
+  arma::mat result = similarity_transform(sigma_sqrt, temp);
+  
+  // Ensure symmetry
+  return symmpart_fast(result);
+}
