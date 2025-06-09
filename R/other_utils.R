@@ -82,10 +82,29 @@ rspdnorm <- function(n, refpt, disp, met) {
 #' }
 #' @export
 relocate <- function(old_ref, new_ref, images, met) {
-  parallel::mclapply(images, 
-    \(tan) met$exp(old_ref, tan) |> met$log(sigma = new_ref, lambda = _),
-    mc.cores = parallel::detectCores() - 1
-  )
+  # Function to relocate a single image
+  relocate_single <- function(tan) {
+    met$exp(old_ref, tan) |> met$log(sigma = new_ref, lambda = _)
+  }
+
+  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+
+  if (nzchar(chk) && chk == "TRUE") {
+    # use 2 cores in CRAN/Travis/AppVeyor
+    num_workers <- 2L
+  } else {
+    # use all cores in devtools::test()
+    num_workers <- parallel::detectCores()
+  }
+
+  # Use sequential processing only during R CMD check
+  # if (Sys.getenv("_R_CHECK_LIMIT_CORES_", "") != "") {
+  #   return(lapply(images, relocate_single))
+  # }
+
+  # # Use full parallel processing in normal operation
+  # cores <- parallel::detectCores() - 1L
+  parallel::mclapply(images, relocate_single, mc.cores = num_workers)
 }
 
 #' Compute the Frechet Mean

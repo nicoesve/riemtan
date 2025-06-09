@@ -32,7 +32,6 @@ Imports:
     R6,
     purrr,
     MASS,
-    furrr,
     matrixStats,
     Rcpp (>= 1.0.0)
 Suggests: 
