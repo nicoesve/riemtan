@@ -30,12 +30,10 @@ airm_log <- function(sigma, lambda) {
   # Use optimized C++ implementation
   result <- airm_log_cpp(sigma_mat, lambda_mat)
 
-  # Convert back to Matrix format and ensure positive definiteness
+  # Convert back to Matrix format and make symmetric
   result |>
     Matrix::Matrix(sparse = FALSE, doDiag = FALSE) |>
-    Matrix::nearPD() |>
-    _$mat |>
-    # Matrix::symmpart() |>
+    Matrix::symmpart() |>
     Matrix::pack()
 }
 
@@ -133,7 +131,8 @@ airm_vec <- function(sigma, v) {
   v_mat <- as.matrix(v)
 
   # Use optimized C++ implementation
-  airm_vec_cpp(sigma_mat, v_mat)
+  result <- airm_vec_cpp(sigma_mat, v_mat)
+  as.numeric(result)
 }
 
 #' Compute the Inverse Vectorization (AIRM)
