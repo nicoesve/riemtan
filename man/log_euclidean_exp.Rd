@@ -4,12 +4,14 @@
 \alias{log_euclidean_exp}
 \title{Compute the Log-Euclidean Exponential}
 \usage{
-log_euclidean_exp(ref_pt, v)
+log_euclidean_exp(ref_pt, v, validate = FALSE)
 }
 \arguments{
 \item{ref_pt}{A reference point.}
 
 \item{v}{A tangent vector to be mapped back to the manifold at \code{ref_pt}.}
+
+\item{validate}{A logical value indicating whether to validate input arguments. Default is FALSE.}
 }
 \value{
 The point on the manifold corresponding to the tangent vector at \code{ref_pt}.

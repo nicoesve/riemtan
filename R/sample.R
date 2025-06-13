@@ -10,7 +10,8 @@ CSample <- R6::R6Class(
     n = NULL, p = NULL, d = NULL, centered = NULL,
     f_mean = NULL, metric_obj = NULL, var = NULL, s_cov = NULL,
     tangent_handler = NULL,
-    dists = NULL
+    dists = NULL,
+    ._batch_size = NULL
   ),
   public = list(
     #' @description Initialize a CSample object
@@ -21,15 +22,17 @@ CSample <- R6::R6Class(
     #' @param vec_imgs A matrix whose rows are vectorized images (default is NULL).
     #' @param centered Boolean indicating whether tangent or vectorized images are centered (default is NULL).
     #' @param metric_obj Object of class `rmetric` representing the Riemannian metric used.
+    #' @param batch_size The batch size for compute_fmean (default is 32).
     #'
     #' @return A new `CSample` object.
     initialize = function(conns = NULL, tan_imgs = NULL,
                           vec_imgs = NULL, centered = NULL,
-                          ref_pt = NULL, metric_obj) {
+                          ref_pt = NULL, metric_obj, batch_size = 32) {
       # Validate and set the metric
       validate_metric(metric_obj)
       private$metric_obj <- metric_obj
       private$tangent_handler <- TangentImageHandler$new(metric_obj, ref_pt)
+      private$._batch_size <- batch_size
 
       # If connectomes are provided
       if (!is.null(conns)) {
@@ -169,10 +172,10 @@ CSample <- R6::R6Class(
     #' @param tol Tolerance for the convergence of the mean (default is 0.05).
     #' @param max_iter Maximum number of iterations for the computation (default is 20).
     #' @param lr Learning rate for the optimization algorithm (default is 0.2).
-    #' @param batch_size The batch size
+    #' @param batch_size The batch size (default is the instance's batch_size).
     #'
     #' @return None
-    compute_fmean = function(tol = 0.05, max_iter = 20, lr = 0.2, batch_size = 32) {
+    compute_fmean = function(tol = 0.05, max_iter = 20, lr = 0.2, batch_size = private$._batch_size) {
       private$f_mean <- compute_frechet_mean(self, tol, max_iter, lr, batch_size)
     },
 
@@ -312,6 +315,9 @@ CSample <- R6::R6Class(
     ref_point = function() private$tangent_handler$ref_point,
 
     #' @field distances Squared distances to the Frechet mean
-    distances = function() private$dists
+    distances = function() private$dists,
+
+    #' @field batch_size Batch size for compute_fmean
+    batch_size = function() private$._batch_size
   )
 )

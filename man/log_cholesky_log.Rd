@@ -4,12 +4,14 @@
 \alias{log_cholesky_log}
 \title{Compute the Log-Cholesky Logarithm}
 \usage{
-log_cholesky_log(sigma, lambda)
+log_cholesky_log(sigma, lambda, validate = FALSE)
 }
 \arguments{
 \item{sigma}{A symmetric positive-definite matrix of class \code{dppMatrix}, representing the reference point.}
 
 \item{lambda}{A symmetric positive-definite matrix of class \code{dppMatrix}, representing the target point.}
+
+\item{validate}{A logical value indicating whether to validate input arguments. Default is FALSE.}
 }
 \value{
 A symmetric matrix of class \code{dspMatrix}, representing the tangent space image of \code{lambda} at \code{sigma}.

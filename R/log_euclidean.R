@@ -2,11 +2,14 @@
 #'
 #' @param sigma A reference point.
 #' @param lambda A point on the manifold.
+#' @param validate A logical value indicating whether to validate input arguments. Default is FALSE.
 #'
 #' @return The tangent space image of `lambda` at `sigma`.
 #' @export
-log_euclidean_log <- function(sigma, lambda) {
-  validate_log_args(sigma, lambda)
+log_euclidean_log <- function(sigma, lambda, validate = FALSE) {
+  if (validate) {
+    validate_log_args(sigma, lambda)
+  }
 
   # Convert to dense matrices for C++ computation
   sigma_mat <- as.matrix(sigma)
@@ -27,11 +30,14 @@ log_euclidean_log <- function(sigma, lambda) {
 #'
 #' @param ref_pt A reference point.
 #' @param v A tangent vector to be mapped back to the manifold at `ref_pt`.
+#' @param validate A logical value indicating whether to validate input arguments. Default is FALSE.
 #'
 #' @return The point on the manifold corresponding to the tangent vector at `ref_pt`.
 #' @export
-log_euclidean_exp <- function(ref_pt, v) {
-  validate_exp_args(ref_pt, v)
+log_euclidean_exp <- function(ref_pt, v, validate = FALSE) {
+  if (validate) {
+    validate_exp_args(ref_pt, v)
+  }
 
   # Convert to dense matrices for C++ computation
   ref_pt_mat <- as.matrix(ref_pt)
