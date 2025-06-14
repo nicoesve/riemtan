@@ -1,126 +1,159 @@
-#include <RcppArmadillo.h>
-// [[Rcpp::depends(RcppArmadillo)]]
+#include <RcppEigen.h>
+// [[Rcpp::depends(RcppEigen)]]
 using namespace Rcpp;
-using namespace arma;
+using namespace Eigen;
 
 // Fast Log-Cholesky logarithmic map computation
 // [[Rcpp::export]]
-arma::mat log_cholesky_log_cpp(const arma::mat &sigma, const arma::mat &lambda)
+Eigen::MatrixXd log_cholesky_log_cpp(const Eigen::MatrixXd &sigma, const Eigen::MatrixXd &lambda)
 {
   // Compute Cholesky decompositions - get lower triangular factors
-  arma::mat l_ref = arma::chol(sigma, "lower");
-  arma::mat l_mfd = arma::chol(lambda, "lower");
+  Eigen::LLT<Eigen::MatrixXd> llt_sigma(sigma);
+  if (llt_sigma.info() != Eigen::Success) {
+    Rcpp::stop("Cholesky decomposition of sigma failed");
+  }
+  Eigen::MatrixXd l_ref = llt_sigma.matrixL();
+  
+  Eigen::LLT<Eigen::MatrixXd> llt_lambda(lambda);
+  if (llt_lambda.info() != Eigen::Success) {
+    Rcpp::stop("Cholesky decomposition of lambda failed");
+  }
+  Eigen::MatrixXd l_mfd = llt_lambda.matrixL();
 
   // Compute off-diagonal difference
-  arma::mat lower_diff = l_mfd - l_ref;
+  Eigen::MatrixXd lower_diff = l_mfd - l_ref;
 
   // Compute diagonal terms
-  arma::vec diag_l_ref = l_ref.diag();
-  arma::vec diag_l_mfd = l_mfd.diag();
-  arma::vec diag_ratio = diag_l_mfd / diag_l_ref;
-  arma::vec diag_terms = diag_l_ref % arma::log(diag_ratio);
+  Eigen::VectorXd diag_l_ref = l_ref.diagonal();
+  Eigen::VectorXd diag_l_mfd = l_mfd.diagonal();
+  Eigen::VectorXd diag_ratio = diag_l_mfd.array() / diag_l_ref.array();
+  Eigen::VectorXd diag_terms = diag_l_ref.array() * diag_ratio.array().log();
 
   // Set diagonal terms
-  lower_diff.diag() = diag_terms;
+  lower_diff.diagonal() = diag_terms;
 
   // Project to SPD tangent space and return
-  arma::mat result = l_ref * lower_diff.t() + lower_diff * l_ref.t();
+  Eigen::MatrixXd result = l_ref * lower_diff.transpose() + lower_diff * l_ref.transpose();
 
   // Return symmetric part
-  return 0.5 * (result + result.t());
+  return 0.5 * (result + result.transpose());
 }
 
 // Helper function to compute half-underscore operation
-arma::mat half_underscore_cpp(const arma::mat &x)
+Eigen::MatrixXd half_underscore_cpp(const Eigen::MatrixXd &x)
 {
-  arma::mat result = arma::trimatl(x, -1); // Lower triangular without diagonal
-  result.diag() = x.diag() / 2.0;          // Half of diagonal elements
+  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(x.rows(), x.cols());
+  result.triangularView<Eigen::StrictlyLower>() = x.triangularView<Eigen::StrictlyLower>(); // Lower triangular without diagonal
+  result.diagonal() = x.diagonal() / 2.0;                                                      // Half of diagonal elements
   return result;
 }
 
 // Fast Log-Cholesky exponential map computation
 // [[Rcpp::export]]
-arma::mat log_cholesky_exp_cpp(const arma::mat &sigma, const arma::mat &v)
+Eigen::MatrixXd log_cholesky_exp_cpp(const Eigen::MatrixXd &sigma, const Eigen::MatrixXd &v)
 {
   // Compute Cholesky decomposition - get lower triangular factor
-  arma::mat l_ref = arma::chol(sigma, "lower");
+  Eigen::LLT<Eigen::MatrixXd> llt_sigma(sigma);
+  if (llt_sigma.info() != Eigen::Success) {
+    Rcpp::stop("Cholesky decomposition of sigma failed");
+  }
+  Eigen::MatrixXd l_ref = llt_sigma.matrixL();
 
   // Transform tangent vector to Cholesky space
-  arma::mat l_inv = arma::inv(l_ref);
-  arma::mat temp = l_inv * v * l_inv.t();
-  arma::mat temp_under_half = half_underscore_cpp(temp);
-  arma::mat x_l = l_ref * temp_under_half;
-  x_l = arma::trimatl(x_l); // Keep only lower triangular part
+  Eigen::MatrixXd l_inv = l_ref.inverse();
+  Eigen::MatrixXd temp = l_inv * v * l_inv.transpose();
+  Eigen::MatrixXd temp_under_half = half_underscore_cpp(temp);
+  Eigen::MatrixXd x_l = l_ref * temp_under_half;
+  // Keep only lower triangular part
+  Eigen::MatrixXd x_l_lower = Eigen::MatrixXd::Zero(x_l.rows(), x_l.cols());
+  x_l_lower.triangularView<Eigen::Lower>() = x_l.triangularView<Eigen::Lower>();
+  x_l = x_l_lower;
 
   // Compute off-diagonal difference and diagonal terms
-  arma::mat lower_sum = x_l + l_ref;
-  arma::vec diag_ratio = x_l.diag() / l_ref.diag();
-  arma::vec diag_terms = l_ref.diag() % arma::exp(diag_ratio);
+  Eigen::MatrixXd lower_sum = x_l + l_ref;
+  Eigen::VectorXd diag_ratio = x_l.diagonal().array() / l_ref.diagonal().array();
+  Eigen::VectorXd diag_terms = l_ref.diagonal().array() * diag_ratio.array().exp();
 
   // Set diagonal terms
-  lower_sum.diag() = diag_terms;
+  lower_sum.diagonal() = diag_terms;
 
   // Return SPD matrix
-  arma::mat result = lower_sum * lower_sum.t();
+  Eigen::MatrixXd result = lower_sum * lower_sum.transpose();
 
   return result;
 }
 
 // Fast SPD isometry to identity computation
 // [[Rcpp::export]]
-arma::mat spd_isometry_to_identity_cpp(const arma::mat &sigma, const arma::mat &v)
+Eigen::MatrixXd spd_isometry_to_identity_cpp(const Eigen::MatrixXd &sigma, const Eigen::MatrixXd &v)
 {
   // Compute Cholesky decomposition - get lower triangular factor
-  arma::mat l_ref = arma::chol(sigma, "lower");
+  Eigen::LLT<Eigen::MatrixXd> llt_sigma(sigma);
+  if (llt_sigma.info() != Eigen::Success) {
+    Rcpp::stop("Cholesky decomposition of sigma failed");
+  }
+  Eigen::MatrixXd l_ref = llt_sigma.matrixL();
 
   // Compute lchol_inv: 1/diag(l_ref) - tril(l_ref, -1)
-  arma::vec diag_inv = 1.0 / l_ref.diag();
-  arma::mat lchol_inv = -arma::trimatl(l_ref, -1);
-  lchol_inv.diag() = diag_inv;
+  Eigen::VectorXd diag_inv = 1.0 / l_ref.diagonal().array();
+  Eigen::MatrixXd lchol_inv = Eigen::MatrixXd::Zero(l_ref.rows(), l_ref.cols());
+  // Copy the strictly lower triangular part with negation
+  for (int j = 0; j < l_ref.cols(); j++) {
+    for (int i = j + 1; i < l_ref.rows(); i++) {
+      lchol_inv(i, j) = -l_ref(i, j);
+    }
+  }
+  lchol_inv.diagonal() = diag_inv;
 
   // Transform tangent vector to Cholesky space
-  arma::mat l_inv = arma::inv(l_ref);
-  arma::mat temp = l_inv * v * l_inv.t();
-  arma::mat temp_under_half = half_underscore_cpp(temp);
-  arma::mat x_l = l_ref * temp_under_half;
+  Eigen::MatrixXd l_inv = l_ref.inverse();
+  Eigen::MatrixXd temp = l_inv * v * l_inv.transpose();
+  Eigen::MatrixXd temp_under_half = half_underscore_cpp(temp);
+  Eigen::MatrixXd x_l = l_ref * temp_under_half;
 
   // Create tangent version
-  arma::mat tan_version = arma::trimatl(x_l, -1);
-  tan_version.diag() = lchol_inv.diag() % x_l.diag();
+  Eigen::MatrixXd tan_version = Eigen::MatrixXd::Zero(x_l.rows(), x_l.cols());
+  tan_version.triangularView<Eigen::StrictlyLower>() = x_l.triangularView<Eigen::StrictlyLower>();
+  tan_version.diagonal() = lchol_inv.diagonal().array() * x_l.diagonal().array();
 
   // Return symmetric part scaled by 2
-  arma::mat result = 2.0 * tan_version;
-  return 0.5 * (result + result.t());
+  Eigen::MatrixXd result = 2.0 * tan_version;
+  return 0.5 * (result + result.transpose());
 }
 
 // Fast SPD isometry from identity computation
 // [[Rcpp::export]]
-arma::mat spd_isometry_from_identity_cpp(const arma::mat &sigma, const arma::mat &v)
+Eigen::MatrixXd spd_isometry_from_identity_cpp(const Eigen::MatrixXd &sigma, const Eigen::MatrixXd &v)
 {
   // Get Cholesky decomposition - lower triangular factor
-  arma::mat l_ref = arma::chol(sigma, "lower");
+  Eigen::LLT<Eigen::MatrixXd> llt_sigma(sigma);
+  if (llt_sigma.info() != Eigen::Success) {
+    Rcpp::stop("Cholesky decomposition of sigma failed");
+  }
+  Eigen::MatrixXd l_ref = llt_sigma.matrixL();
 
   // Apply half-underscore operation to v
-  arma::mat x_l = half_underscore_cpp(v);
+  Eigen::MatrixXd x_l = half_underscore_cpp(v);
 
   // Create tangent version: lower triangular part without diagonal
-  arma::mat tan_version = arma::trimatl(x_l, -1);
+  Eigen::MatrixXd tan_version = Eigen::MatrixXd::Zero(x_l.rows(), x_l.cols());
+  tan_version.triangularView<Eigen::StrictlyLower>() = x_l.triangularView<Eigen::StrictlyLower>();
 
   // Set diagonal terms: diag(l_ref) * diag(x_l)
-  tan_version.diag() = l_ref.diag() % x_l.diag();
+  tan_version.diagonal() = l_ref.diagonal().array() * x_l.diagonal().array();
 
   // Compute result: l_ref * tan_version' + tan_version * l_ref'
-  arma::mat aux = l_ref * tan_version.t() + tan_version * l_ref.t();
+  Eigen::MatrixXd aux = l_ref * tan_version.transpose() + tan_version * l_ref.transpose();
 
   // Return symmetric part
-  return 0.5 * (aux + aux.t());
+  return 0.5 * (aux + aux.transpose());
 }
 
 // Fast vector scaling for log_cholesky_unvec
 // [[Rcpp::export]]
-arma::vec scale_vector_for_unvec_cpp(const arma::vec &w, int n)
+Eigen::VectorXd scale_vector_for_unvec_cpp(const Eigen::VectorXd &w, int n)
 {
-  arma::vec w_scaled = w;
+  Eigen::VectorXd w_scaled = w;
 
   // Scale diagonal elements: w_scaled[i * (i + 1) / 2] *= sqrt(2)
   for (int i = 1; i <= n; i++)

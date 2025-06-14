@@ -1,41 +1,47 @@
-#include <RcppArmadillo.h>
-// [[Rcpp::depends(RcppArmadillo)]]
+#include <RcppEigen.h>
+// [[Rcpp::depends(RcppEigen)]]
 
 // Forward declarations
-arma::mat safe_logm_cpp(const arma::mat& X);
-arma::mat dexp_cpp(const arma::mat& a, const arma::mat& x, int num_points = 100);
-arma::mat dlog_cpp(const arma::mat& sigma, const arma::mat& h, int num_points = 100);
+Eigen::MatrixXd safe_logm_cpp(const Eigen::MatrixXd& X);
+Eigen::MatrixXd dexp_cpp(const Eigen::MatrixXd& a, const Eigen::MatrixXd& x, int num_points = 100);
+Eigen::MatrixXd dlog_cpp(const Eigen::MatrixXd& sigma, const Eigen::MatrixXd& h, int num_points = 100);
 
 // [[Rcpp::export]]
-arma::mat log_euclidean_log_cpp(const arma::mat& sigma, const arma::mat& lambda) {
+Eigen::MatrixXd log_euclidean_log_cpp(const Eigen::MatrixXd& sigma, const Eigen::MatrixXd& lambda) {
     // Compute matrix logarithms
-    arma::mat aux_matr_1 = safe_logm_cpp(sigma);
-    arma::mat aux_matr_2 = safe_logm_cpp(lambda);
+    Eigen::MatrixXd aux_matr_1 = safe_logm_cpp(sigma);
+    Eigen::MatrixXd aux_matr_2 = safe_logm_cpp(lambda);
     
     // Compute difference
-    arma::mat aux_matr_3 = aux_matr_2 - aux_matr_1;
+    Eigen::MatrixXd aux_matr_3 = aux_matr_2 - aux_matr_1;
     
     // Make symmetric
-    aux_matr_1 = 0.5 * (aux_matr_1 + aux_matr_1.t());
-    aux_matr_3 = 0.5 * (aux_matr_3 + aux_matr_3.t());
+    aux_matr_1 = 0.5 * (aux_matr_1 + aux_matr_1.transpose());
+    aux_matr_3 = 0.5 * (aux_matr_3 + aux_matr_3.transpose());
     
     // Call dexp
     return dexp_cpp(aux_matr_1, aux_matr_3);
 }
 
 // [[Rcpp::export]]
-arma::mat log_euclidean_exp_cpp(const arma::mat& ref_pt, const arma::mat& v) {
+Eigen::MatrixXd log_euclidean_exp_cpp(const Eigen::MatrixXd& ref_pt, const Eigen::MatrixXd& v) {
     // Compute matrix logarithm of ref_pt using safe_logm_cpp
-    arma::mat aux_matr_1 = safe_logm_cpp(ref_pt);
+    Eigen::MatrixXd aux_matr_1 = safe_logm_cpp(ref_pt);
     
     // Compute dlog(ref_pt, v)
-    arma::mat aux_matr_2 = dlog_cpp(ref_pt, v);
+    Eigen::MatrixXd aux_matr_2 = dlog_cpp(ref_pt, v);
     
     // Add them
-    arma::mat aux_matr_3 = aux_matr_1 + aux_matr_2;
+    Eigen::MatrixXd aux_matr_3 = aux_matr_1 + aux_matr_2;
     
-    // Compute matrix exponential
-    arma::mat result = arma::expmat(aux_matr_3);
+    // Compute matrix exponential using eigendecomposition
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(aux_matr_3);
+    if (es.info() != Eigen::Success) {
+        Rcpp::stop("Eigendecomposition failed");
+    }
+    
+    Eigen::VectorXd exp_eigenvalues = es.eigenvalues().array().exp();
+    Eigen::MatrixXd result = es.eigenvectors() * exp_eigenvalues.asDiagonal() * es.eigenvectors().transpose();
     
     return result;
 }
