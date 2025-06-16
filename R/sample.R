@@ -27,12 +27,12 @@ CSample <- R6::R6Class(
     #' @return A new `CSample` object.
     initialize = function(conns = NULL, tan_imgs = NULL,
                           vec_imgs = NULL, centered = NULL,
-                          ref_pt = NULL, metric_obj, batch_size = 32) {
+                          ref_pt = NULL, metric_obj, batch_size = NULL) {
       # Validate and set the metric
       validate_metric(metric_obj)
       private$metric_obj <- metric_obj
       private$tangent_handler <- TangentImageHandler$new(metric_obj, ref_pt)
-      private$._batch_size <- batch_size
+
 
       # If connectomes are provided
       if (!is.null(conns)) {
@@ -52,6 +52,7 @@ CSample <- R6::R6Class(
         private$var <- NULL
         private$s_cov <- NULL
         private$dists <- NULL
+        private$._batch_size <- if (is.null(batch_size)) n else batch_size
 
         # If tangent images are provided
       } else if (!is.null(tan_imgs)) {
