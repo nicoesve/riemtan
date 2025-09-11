@@ -4,12 +4,14 @@
 \alias{euclidean_exp}
 \title{Compute the Euclidean Exponential}
 \usage{
-euclidean_exp(sigma, v)
+euclidean_exp(sigma, v, validate = FALSE)
 }
 \arguments{
 \item{sigma}{A reference point.}
 
 \item{v}{A tangent vector to be mapped back to the manifold at \code{sigma}.}
+
+\item{validate}{A logical value indicating whether to validate input arguments. Default is FALSE.}
 }
 \value{
 The point on the manifold corresponding to the tangent vector at \code{sigma}.

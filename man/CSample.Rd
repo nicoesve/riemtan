@@ -34,6 +34,8 @@ This class represents a sample of connectomes, with various properties and metho
 \item{\code{ref_point}}{Reference point for tangent or vectorized images}
 
 \item{\code{distances}}{Squared distances to the Frechet mean}
+
+\item{\code{batch_size}}{Batch size for compute_fmean}
 }
 \if{html}{\out{</div>}}
 }
@@ -66,7 +68,8 @@ Initialize a CSample object
   vec_imgs = NULL,
   centered = NULL,
   ref_pt = NULL,
-  metric_obj
+  metric_obj,
+  batch_size = 32
 )}\if{html}{\out{</div>}}
 }
 
@@ -84,6 +87,8 @@ Initialize a CSample object
 \item{\code{ref_pt}}{A connectome (default is identity)}
 
 \item{\code{metric_obj}}{Object of class \code{rmetric} representing the Riemannian metric used.}
+
+\item{\code{batch_size}}{The batch size for compute_fmean (default is 32).}
 }
 \if{html}{\out{</div>}}
 }
@@ -172,7 +177,12 @@ None
 \subsection{Method \code{compute_fmean()}}{
 This function computes the Frechet mean of the sample.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CSample$compute_fmean(tol = 0.05, max_iter = 20, lr = 0.2, batch_size = 32)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CSample$compute_fmean(
+  tol = 0.05,
+  max_iter = 20,
+  lr = 0.2,
+  batch_size = private$._batch_size
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -184,7 +194,7 @@ This function computes the Frechet mean of the sample.
 
 \item{\code{lr}}{Learning rate for the optimization algorithm (default is 0.2).}
 
-\item{\code{batch_size}}{The batch size}
+\item{\code{batch_size}}{The batch size (default is the instance's batch_size).}
 }
 \if{html}{\out{</div>}}
 }

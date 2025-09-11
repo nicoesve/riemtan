@@ -4,12 +4,14 @@
 \alias{airm_exp}
 \title{Compute the AIRM Exponential}
 \usage{
-airm_exp(sigma, v)
+airm_exp(sigma, v, validate = FALSE)
 }
 \arguments{
 \item{sigma}{A symmetric positive-definite matrix of class \code{dppMatrix}, representing the reference point.}
 
 \item{v}{A tangent vector of class \code{dspMatrix}, to be mapped back to the manifold at \code{sigma}.}
+
+\item{validate}{A logical value indicating whether to validate input arguments. Default is FALSE.}
 }
 \value{
 A symmetric positive-definite matrix of class \code{dppMatrix}.

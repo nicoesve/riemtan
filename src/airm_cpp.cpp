@@ -1,13 +1,13 @@
-#include <RcppArmadillo.h>
-// [[Rcpp::depends(RcppArmadillo)]]
+#include <RcppEigen.h>
+// [[Rcpp::depends(RcppEigen)]]
 using namespace Rcpp;
-using namespace arma;
+using namespace Eigen;
 
 // Optimized vectorization at identity
 // [[Rcpp::export]]
-arma::vec vec_at_id_fast(const arma::mat& v) {
-  int n = v.n_rows;
-  arma::vec w(n * (n + 1) / 2);
+Eigen::VectorXd vec_at_id_fast(const Eigen::MatrixXd& v) {
+  int n = v.rows();
+  Eigen::VectorXd w(n * (n + 1) / 2);
   
   int idx = 0;
   for (int j = 0; j < n; j++) {
@@ -26,133 +26,175 @@ arma::vec vec_at_id_fast(const arma::mat& v) {
 
 // Fast matrix multiplication for similarity transforms
 // [[Rcpp::export]]
-arma::mat similarity_transform(const arma::mat& A, const arma::mat& X) {
+Eigen::MatrixXd similarity_transform(const Eigen::MatrixXd& A, const Eigen::MatrixXd& X) {
   // Computes A * X * A
   return A * X * A;
 }
 
 // Fast symmetric part computation
 // [[Rcpp::export]]
-arma::mat symmpart_fast(const arma::mat& A) {
-  return 0.5 * (A + A.t());
+Eigen::MatrixXd symmpart_fast(const Eigen::MatrixXd& A) {
+  return 0.5 * (A + A.transpose());
 }
 
 // Safe matrix logarithm with fallback methods
 // [[Rcpp::export]]
-arma::mat safe_logm_cpp(const arma::mat& X) {
-  // First attempt: Use logmat_sympd for symmetric positive definite matrices
-  try {
-    arma::mat result = arma::logmat_sympd(X);
-    return result;
-  } catch (const std::exception& e) {
-    // Second attempt: Use general logmat function
-    try {
-      arma::cx_mat complex_result = arma::logmat(X);
-      
-      // Check if the result has any non-zero imaginary parts
-      if (arma::any(arma::vectorise(arma::imag(complex_result)) != 0)) {
-        Rcpp::stop("Matrix logarithm resulted in complex values");
-      }
-      
-      // Return only the real part if all imaginary parts are zero
-      return arma::real(complex_result);
-      
-    } catch (const std::exception& e2) {
-      // If both methods fail, throw an error
-      Rcpp::stop("Matrix logarithm computation failed with both logmat_sympd and logmat methods");
-    }
+Eigen::MatrixXd safe_logm_cpp(const Eigen::MatrixXd& X) {
+  // For SPD matrices, we can use eigendecomposition
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(X);
+  if (es.info() != Eigen::Success) {
+    Rcpp::stop("Eigendecomposition failed");
   }
+  
+  Eigen::VectorXd eigenvalues = es.eigenvalues();
+  
+  // Check if all eigenvalues are positive
+  if ((eigenvalues.array() <= 0).any()) {
+    Rcpp::stop("Matrix is not positive definite");
+  }
+  
+  // Compute log of eigenvalues
+  Eigen::VectorXd log_eigenvalues = eigenvalues.array().log();
+  
+  // Reconstruct the matrix logarithm
+  Eigen::MatrixXd result = es.eigenvectors() * log_eigenvalues.asDiagonal() * es.eigenvectors().transpose();
+  
+  return result;
+}
+
+// Matrix square root for symmetric positive definite matrices
+Eigen::MatrixXd sqrtm_sympd(const Eigen::MatrixXd& X) {
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(X);
+  if (es.info() != Eigen::Success) {
+    Rcpp::stop("Eigendecomposition failed");
+  }
+  
+  Eigen::VectorXd eigenvalues = es.eigenvalues();
+  
+  // Check if all eigenvalues are positive
+  if ((eigenvalues.array() <= 0).any()) {
+    Rcpp::stop("Matrix is not positive definite");
+  }
+  
+  // Compute sqrt of eigenvalues
+  Eigen::VectorXd sqrt_eigenvalues = eigenvalues.array().sqrt();
+  
+  // Reconstruct the matrix square root
+  Eigen::MatrixXd result = es.eigenvectors() * sqrt_eigenvalues.asDiagonal() * es.eigenvectors().transpose();
+  
+  return result;
+}
+
+// Matrix exponential for symmetric matrices
+Eigen::MatrixXd expm_sym(const Eigen::MatrixXd& X) {
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(X);
+  if (es.info() != Eigen::Success) {
+    Rcpp::stop("Eigendecomposition failed");
+  }
+  
+  Eigen::VectorXd eigenvalues = es.eigenvalues();
+  
+  // Compute exp of eigenvalues
+  Eigen::VectorXd exp_eigenvalues = eigenvalues.array().exp();
+  
+  // Reconstruct the matrix exponential
+  Eigen::MatrixXd result = es.eigenvectors() * exp_eigenvalues.asDiagonal() * es.eigenvectors().transpose();
+  
+  return result;
 }
 
 // Optimized AIRM logarithm computation
 // [[Rcpp::export]]
-arma::mat airm_log_cpp(const arma::mat& sigma, const arma::mat& lambda) {
+Eigen::MatrixXd airm_log_cpp(const Eigen::MatrixXd& sigma, const Eigen::MatrixXd& lambda) {
   // Compute matrix square root of sigma
-  arma::mat sigma_sqrt;
+  Eigen::MatrixXd sigma_sqrt;
   try {
-    sigma_sqrt = arma::sqrtmat_sympd(sigma);
+    sigma_sqrt = sqrtm_sympd(sigma);
   } catch (const std::exception& e) {
     Rcpp::stop("Failed to compute matrix square root of sigma");
   }
   
   // Compute inverse of sigma_sqrt
-  arma::mat sigma_sqrt_inv;
+  Eigen::MatrixXd sigma_sqrt_inv;
   try {
-    sigma_sqrt_inv = arma::inv_sympd(sigma_sqrt);
+    // For SPD matrices, we can use LDLT decomposition for efficient inverse
+    sigma_sqrt_inv = sigma_sqrt.ldlt().solve(Eigen::MatrixXd::Identity(sigma_sqrt.rows(), sigma_sqrt.cols()));
   } catch (const std::exception& e) {
     Rcpp::stop("Failed to compute inverse of sigma square root");
   }
   
   // Compute similarity transform: sigma_sqrt_inv * lambda * sigma_sqrt_inv
-  arma::mat temp = similarity_transform(sigma_sqrt_inv, lambda);
+  Eigen::MatrixXd temp = similarity_transform(sigma_sqrt_inv, lambda);
   
   // Ensure symmetry
   temp = symmpart_fast(temp);
   
   // Compute matrix logarithm
-  arma::mat log_temp = safe_logm_cpp(temp);
+  Eigen::MatrixXd log_temp = safe_logm_cpp(temp);
   
   // Final similarity transform: sigma_sqrt * log_temp * sigma_sqrt
-  arma::mat result = similarity_transform(sigma_sqrt, log_temp);
+  Eigen::MatrixXd result = similarity_transform(sigma_sqrt, log_temp);
   
   return result;
 }
 
 // Optimized AIRM exponential computation
 // [[Rcpp::export]]
-arma::mat airm_exp_cpp(const arma::mat& sigma, const arma::mat& v) {
+Eigen::MatrixXd airm_exp_cpp(const Eigen::MatrixXd& sigma, const Eigen::MatrixXd& v) {
   // Compute matrix square root of sigma
-  arma::mat sigma_sqrt;
+  Eigen::MatrixXd sigma_sqrt;
   try {
-    sigma_sqrt = arma::sqrtmat_sympd(sigma);
+    sigma_sqrt = sqrtm_sympd(sigma);
   } catch (const std::exception& e) {
     Rcpp::stop("Failed to compute matrix square root of sigma");
   }
   
   // Compute inverse of sigma_sqrt
-  arma::mat sigma_sqrt_inv;
+  Eigen::MatrixXd sigma_sqrt_inv;
   try {
-    sigma_sqrt_inv = arma::inv_sympd(sigma_sqrt);
+    // For SPD matrices, we can use LDLT decomposition for efficient inverse
+    sigma_sqrt_inv = sigma_sqrt.ldlt().solve(Eigen::MatrixXd::Identity(sigma_sqrt.rows(), sigma_sqrt.cols()));
   } catch (const std::exception& e) {
     Rcpp::stop("Failed to compute inverse of sigma square root");
   }
   
   // Compute similarity transform: sigma_sqrt_inv * v * sigma_sqrt_inv
-  arma::mat temp = similarity_transform(sigma_sqrt_inv, v);
+  Eigen::MatrixXd temp = similarity_transform(sigma_sqrt_inv, v);
   
   // Ensure symmetry
   temp = symmpart_fast(temp);
   
   // Compute matrix exponential
-  arma::mat exp_temp = arma::expmat_sym(temp);
+  Eigen::MatrixXd exp_temp = expm_sym(temp);
   
   // Final similarity transform: sigma_sqrt * exp_temp * sigma_sqrt
-  arma::mat result = similarity_transform(sigma_sqrt, exp_temp);
+  Eigen::MatrixXd result = similarity_transform(sigma_sqrt, exp_temp);
   
   return result;
 }
 
 // Optimized AIRM vectorization computation
 // [[Rcpp::export]]
-arma::vec airm_vec_cpp(const arma::mat& sigma, const arma::mat& v) {
+Eigen::VectorXd airm_vec_cpp(const Eigen::MatrixXd& sigma, const Eigen::MatrixXd& v) {
   // Compute matrix square root of sigma
-  arma::mat sigma_sqrt;
+  Eigen::MatrixXd sigma_sqrt;
   try {
-    sigma_sqrt = arma::sqrtmat_sympd(sigma);
+    sigma_sqrt = sqrtm_sympd(sigma);
   } catch (const std::exception& e) {
     Rcpp::stop("Failed to compute matrix square root of sigma");
   }
   
   // Compute inverse of sigma_sqrt
-  arma::mat sigma_sqrt_inv;
+  Eigen::MatrixXd sigma_sqrt_inv;
   try {
-    sigma_sqrt_inv = arma::inv_sympd(sigma_sqrt);
+    // For SPD matrices, we can use LDLT decomposition for efficient inverse
+    sigma_sqrt_inv = sigma_sqrt.ldlt().solve(Eigen::MatrixXd::Identity(sigma_sqrt.rows(), sigma_sqrt.cols()));
   } catch (const std::exception& e) {
     Rcpp::stop("Failed to compute inverse of sigma square root");
   }
   
   // Compute similarity transform: sigma_sqrt_inv * v * sigma_sqrt_inv
-  arma::mat temp = similarity_transform(sigma_sqrt_inv, v);
+  Eigen::MatrixXd temp = similarity_transform(sigma_sqrt_inv, v);
   
   // Ensure symmetry
   temp = symmpart_fast(temp);
@@ -162,26 +204,26 @@ arma::vec airm_vec_cpp(const arma::mat& sigma, const arma::mat& v) {
 }
 
 // Forward declaration for scale_vector_for_unvec_cpp
-arma::vec scale_vector_for_unvec_cpp(const arma::vec& w, int n);
+Eigen::VectorXd scale_vector_for_unvec_cpp(const Eigen::VectorXd& w, int n);
 
 // Optimized AIRM unvec (inverse vectorization) computation
 // [[Rcpp::export]]
-arma::mat airm_unvec_cpp(const arma::mat& sigma, const arma::vec& w) {
-  int n = sigma.n_rows;
+Eigen::MatrixXd airm_unvec_cpp(const Eigen::MatrixXd& sigma, const Eigen::VectorXd& w) {
+  int n = sigma.rows();
   
   // Compute matrix square root of sigma
-  arma::mat sigma_sqrt;
+  Eigen::MatrixXd sigma_sqrt;
   try {
-    sigma_sqrt = arma::sqrtmat_sympd(sigma);
+    sigma_sqrt = sqrtm_sympd(sigma);
   } catch (const std::exception& e) {
     Rcpp::stop("Failed to compute matrix square root of sigma");
   }
   
   // Scale the vector using the existing function
-  arma::vec w_scaled = scale_vector_for_unvec_cpp(w, n);
+  Eigen::VectorXd w_scaled = scale_vector_for_unvec_cpp(w, n);
   
   // Create symmetric matrix from scaled vector
-  arma::mat temp(n, n, arma::fill::zeros);
+  Eigen::MatrixXd temp = Eigen::MatrixXd::Zero(n, n);
   int idx = 0;
   for (int j = 0; j < n; j++) {
     for (int i = j; i < n; i++) {
@@ -194,7 +236,7 @@ arma::mat airm_unvec_cpp(const arma::mat& sigma, const arma::vec& w) {
   }
   
   // Final similarity transform: sigma_sqrt * temp * sigma_sqrt
-  arma::mat result = similarity_transform(sigma_sqrt, temp);
+  Eigen::MatrixXd result = similarity_transform(sigma_sqrt, temp);
   
   // Ensure symmetry
   return symmpart_fast(result);

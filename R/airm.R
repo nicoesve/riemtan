@@ -4,6 +4,7 @@
 #'
 #' @param sigma A symmetric positive-definite matrix of class `dppMatrix`, representing the reference point.
 #' @param lambda A symmetric positive-definite matrix of class `dppMatrix`, representing the target point.
+#' @param validate A logical value indicating whether to validate input arguments. Default is FALSE.
 #'
 #' @return A symmetric matrix of class `dspMatrix`, representing the tangent space image of `lambda` at `sigma`.
 #' @examples
@@ -20,8 +21,10 @@
 #'   airm_log(sigma, lambda)
 #' }
 #' @export
-airm_log <- function(sigma, lambda) {
-  validate_log_args(sigma, lambda)
+airm_log <- function(sigma, lambda, validate = FALSE) {
+  if (validate) {
+    validate_log_args(sigma, lambda)
+  }
 
   # Convert to dense matrices for C++ computation
   sigma_mat <- as.matrix(sigma)
@@ -43,6 +46,7 @@ airm_log <- function(sigma, lambda) {
 #'
 #' @param sigma A symmetric positive-definite matrix of class `dppMatrix`, representing the reference point.
 #' @param v A tangent vector of class `dspMatrix`, to be mapped back to the manifold at `sigma`.
+#' @param validate A logical value indicating whether to validate input arguments. Default is FALSE.
 #'
 #' @return A symmetric positive-definite matrix of class `dppMatrix`.
 #' @examples
@@ -58,8 +62,10 @@ airm_log <- function(sigma, lambda) {
 #'   airm_exp(sigma, v)
 #' }
 #' @export
-airm_exp <- function(sigma, v) {
-  validate_exp_args(sigma, v)
+airm_exp <- function(sigma, v, validate = FALSE) {
+  if (validate) {
+    validate_exp_args(sigma, v)
+  }
 
   # Convert to dense matrices for C++ computation
   sigma_mat <- as.matrix(sigma)

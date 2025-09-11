@@ -4,12 +4,14 @@
 \alias{log_cholesky_exp}
 \title{Compute the Log-Cholesky Exponential}
 \usage{
-log_cholesky_exp(sigma, v)
+log_cholesky_exp(sigma, v, validate = FALSE)
 }
 \arguments{
 \item{sigma}{A symmetric positive-definite matrix of class \code{dppMatrix}, representing the reference point.}
 
 \item{v}{A symmetric matrix of class \code{dspMatrix}, representing the tangent vector to be mapped.}
+
+\item{validate}{A logical value indicating whether to validate input arguments. Default is FALSE.}
 }
 \value{
 A symmetric positive-definite matrix of class \code{dppMatrix}, representing the point on the manifold.

@@ -2,11 +2,14 @@
 #'
 #' @param sigma A reference point.
 #' @param lambda A point on the manifold.
+#' @param validate A logical value indicating whether to validate input arguments. Default is FALSE.
 #'
 #' @return The tangent space image of `lambda` at `sigma`.
 #' @export
-euclidean_log <- function(sigma, lambda) {
-  validate_log_args(sigma, lambda)
+euclidean_log <- function(sigma, lambda, validate = FALSE) {
+  if (validate) {
+    validate_log_args(sigma, lambda)
+  }
   (lambda - sigma) |>
     Matrix::symmpart() |>
     Matrix::pack()
@@ -16,11 +19,14 @@ euclidean_log <- function(sigma, lambda) {
 #'
 #' @param sigma A reference point.
 #' @param v A tangent vector to be mapped back to the manifold at `sigma`.
+#' @param validate A logical value indicating whether to validate input arguments. Default is FALSE.
 #'
 #' @return The point on the manifold corresponding to the tangent vector at `sigma`.
 #' @export
-euclidean_exp <- function(sigma, v) {
-  validate_exp_args(sigma, v)
+euclidean_exp <- function(sigma, v, validate = FALSE) {
+  if (validate) {
+    validate_exp_args(sigma, v)
+  }
   tryCatch(
     {
       chol(sigma + v)

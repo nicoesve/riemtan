@@ -4,11 +4,14 @@
 #'
 #' @param sigma A symmetric positive-definite matrix of class `dppMatrix`, representing the reference point.
 #' @param lambda A symmetric positive-definite matrix of class `dppMatrix`, representing the target point.
+#' @param validate A logical value indicating whether to validate input arguments. Default is FALSE.
 #'
 #' @return A symmetric matrix of class `dspMatrix`, representing the tangent space image of `lambda` at `sigma`.
 #' @export
-log_cholesky_log <- function(sigma, lambda) {
-  validate_log_args(sigma, lambda)
+log_cholesky_log <- function(sigma, lambda, validate = FALSE) {
+  if (validate) {
+    validate_log_args(sigma, lambda)
+  }
 
   # Convert to dense matrices for C++ computation
   sigma_dense <- as.matrix(sigma)
@@ -30,11 +33,14 @@ log_cholesky_log <- function(sigma, lambda) {
 #'
 #' @param sigma A symmetric positive-definite matrix of class `dppMatrix`, representing the reference point.
 #' @param v A symmetric matrix of class `dspMatrix`, representing the tangent vector to be mapped.
+#' @param validate A logical value indicating whether to validate input arguments. Default is FALSE.
 #'
 #' @return A symmetric positive-definite matrix of class `dppMatrix`, representing the point on the manifold.
 #' @export
-log_cholesky_exp <- function(sigma, v) {
-  validate_exp_args(sigma, v)
+log_cholesky_exp <- function(sigma, v, validate = FALSE) {
+  if (validate) {
+    validate_exp_args(sigma, v)
+  }
 
   # Convert to dense matrices for C++ computation
   sigma_dense <- as.matrix(sigma)

@@ -4,4 +4,6 @@
 ^README\.md
 ^metrics\.R
 ^_pkgdown.yml
-CLAUDE.md
+^CLAUDE.md
+^.*\.so$
+^.*\.o$
