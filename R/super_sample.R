@@ -147,48 +147,87 @@ CSuperSample <- R6::R6Class(
       }
       # Rprof(path)
 
-      v <- private$samples |>
-        purrr::map(
-          \(sam) {
-            if (sam$frechet_mean |> is.null()) sam$compute_fmean()
-            list(
-              sam$frechet_mean,
-              self$riem_metric$log(sam$frechet_mean, self$frechet_mean)
-            )
-          }
-        ) |>
-        purrr::map(\(l) do.call(self$riem_metric$vec, args = l))
+      v <- tryCatch({
+        private$samples |>
+          purrr::imap(
+            \(sam, idx) {
+              tryCatch({
+                if (sam$frechet_mean |> is.null()) sam$compute_fmean()
+                list(
+                  sam$frechet_mean,
+                  self$riem_metric$log(sam$frechet_mean, self$frechet_mean)
+                )
+              }, error = function(e) {
+                stop(sprintf("Error computing log map for sample %d: %s", idx, e$message))
+              })
+            }
+          ) |>
+          purrr::imap(\(l, idx) {
+            tryCatch({
+              do.call(self$riem_metric$vec, args = l)
+            }, error = function(e) {
+              stop(sprintf("Error vectorizing tangent vector for sample %d: %s", idx, e$message))
+            })
+          })
+      }, error = function(e) {
+        stop(sprintf("Error in compute_T while computing tangent vectors: %s", e$message))
+      })
       # Rprof(NULL)
       # sink(file.path("profiles", basename(path)))
       # summaryRprof(path) |> print()
       # sink()
-      u <- private$samples |> purrr::map(
-        \(sam) {
-          if ((sam$is_centered |> is.null()) || !sam$is_centered) sam$center()
-          if (sam$vector_images |> is.null()) {
-            sam$compute_tangents()
-            sam$compute_vecs()
+      u <- tryCatch({
+        private$samples |> purrr::imap(
+          \(sam, idx) {
+            tryCatch({
+              if ((sam$is_centered |> is.null()) || !sam$is_centered) sam$center()
+              if (sam$vector_images |> is.null()) {
+                sam$compute_tangents()
+                sam$compute_vecs()
+              }
+              sam$vector_images
+            }, error = function(e) {
+              stop(sprintf("Error processing vector images for sample %d: %s", idx, e$message))
+            })
           }
-          sam$vector_images
-        }
-      )
+        )
+      }, error = function(e) {
+        stop(sprintf("Error in compute_T while processing vector images: %s", e$message))
+      })
 
-      private$T <- purrr::map2(
-        u, v, function(x, y) sweep(x, 2, y, FUN = "-")
-      ) |>
-        purrr::map(
-          \(m) {
-            1:nrow(m) |>
-              purrr::map(
-                \(i) matrix(m[i, ], ncol = 1) %*% matrix(m[i, ], nrow = 1)
-              ) |>
-              Reduce(`+`, x = _)
+      private$T <- tryCatch({
+        purrr::map2(
+          u, v, function(x, y) {
+            tryCatch({
+              sweep(x, 2, y, FUN = "-")
+            }, error = function(e) {
+              stop(sprintf("Error in sweep operation: %s", e$message))
+            })
           }
         ) |>
-        Reduce(`+`, x = _) |>
-        Matrix::nearPD() |>
-        _$mat |>
-        Matrix::pack()
+          purrr::imap(
+            \(m, idx) {
+              tryCatch({
+                if (nrow(m) == 0) {
+                  stop(sprintf("Sample %d has no rows in matrix", idx))
+                }
+                1:nrow(m) |>
+                  purrr::map(
+                    \(i) matrix(m[i, ], ncol = 1) %*% matrix(m[i, ], nrow = 1)
+                  ) |>
+                  Reduce(`+`, x = _)
+              }, error = function(e) {
+                stop(sprintf("Error computing outer products for sample %d: %s", idx, e$message))
+              })
+            }
+          ) |>
+          Reduce(`+`, x = _) |>
+          Matrix::nearPD() |>
+          _$mat |>
+          Matrix::pack()
+      }, error = function(e) {
+        stop(sprintf("Error in compute_T while computing total covariance matrix: %s", e$message))
+      })
     }
   ),
   active = list(
