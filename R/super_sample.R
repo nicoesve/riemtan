@@ -109,11 +109,12 @@ CSuperSample <- R6::R6Class(
 
     #' @description Compute the Frechet mean of the aggregated sample.
     #'
+    #' @param batch_size Optional batch size parameter passed to the underlying compute_fmean function.
     #' @return None. This function is called for its side effects. The result is stored in the `frechet_mean` active binding.
-    compute_fmean = function() {
+    compute_fmean = function(batch_size = NULL) {
       if (private$gathered_sample |> is.null()) self$gather()
 
-      private$gathered_sample$compute_fmean()
+      private$gathered_sample$compute_fmean(batch_size = batch_size)
       private$f_mean <- private$gathered_sample$frechet_mean
     },
 
