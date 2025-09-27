@@ -146,6 +146,9 @@ compute_frechet_mean <-
     }
     if (!is.numeric(tol)) stop("tol must be a numeric.")
     if (max_iter < 1) stop("max_iter must be at least 1.")
+    if (is.null(batch_size) || !is.numeric(batch_size) || length(batch_size) != 1) {
+      stop("batch_size must be a single numeric value.")
+    }
 
     aux_sample <- sample
     delta <- Inf
