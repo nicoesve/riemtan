@@ -125,6 +125,8 @@ CSuperSample <- R6::R6Class(
       private$W <- private$samples |>
         purrr::map(
           \(sam) {
+            # Ensure sample is centered around its own mean
+            if (!sam$is_centered) sam$center()
             if (sam$sample_cov |> is.null()) sam$compute_sample_cov()
             (sam$sample_size - 1) * sam$sample_cov
           }
