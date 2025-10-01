@@ -125,6 +125,7 @@ CSuperSample <- R6::R6Class(
       private$W <- private$samples |>
         purrr::map(
           \(sam) {
+            if (sam$tangent_images |> is.null()) sam$compute_unvecs()
             # Ensure sample is centered around its own mean
             if ((sam$is_centered |> is.null()) || !sam$is_centered) sam$center()
             if (sam$sample_cov |> is.null()) sam$compute_sample_cov()
@@ -150,87 +151,111 @@ CSuperSample <- R6::R6Class(
       }
       # Rprof(path)
 
-      v <- tryCatch({
-        private$samples |>
-          purrr::imap(
-            \(sam, idx) {
-              tryCatch({
-                if (sam$frechet_mean |> is.null()) sam$compute_fmean()
-                list(
-                  sam$frechet_mean,
-                  self$riem_metric$log(sam$frechet_mean, self$frechet_mean)
+      v <- tryCatch(
+        {
+          private$samples |>
+            purrr::imap(
+              \(sam, idx) {
+                tryCatch(
+                  {
+                    if (sam$frechet_mean |> is.null()) sam$compute_fmean()
+                    list(
+                      sam$frechet_mean,
+                      self$riem_metric$log(sam$frechet_mean, self$frechet_mean)
+                    )
+                  },
+                  error = function(e) {
+                    stop(sprintf("Error computing log map for sample %d: %s", idx, e$message))
+                  }
                 )
-              }, error = function(e) {
-                stop(sprintf("Error computing log map for sample %d: %s", idx, e$message))
-              })
-            }
-          ) |>
-          purrr::imap(\(l, idx) {
-            tryCatch({
-              do.call(self$riem_metric$vec, args = l)
-            }, error = function(e) {
-              stop(sprintf("Error vectorizing tangent vector for sample %d: %s", idx, e$message))
+              }
+            ) |>
+            purrr::imap(\(l, idx) {
+              tryCatch(
+                {
+                  do.call(self$riem_metric$vec, args = l)
+                },
+                error = function(e) {
+                  stop(sprintf("Error vectorizing tangent vector for sample %d: %s", idx, e$message))
+                }
+              )
             })
-          })
-      }, error = function(e) {
-        stop(sprintf("Error in compute_T while computing tangent vectors: %s", e$message))
-      })
+        },
+        error = function(e) {
+          stop(sprintf("Error in compute_T while computing tangent vectors: %s", e$message))
+        }
+      )
       # Rprof(NULL)
       # sink(file.path("profiles", basename(path)))
       # summaryRprof(path) |> print()
       # sink()
-      u <- tryCatch({
-        private$samples |> purrr::imap(
-          \(sam, idx) {
-            tryCatch({
-              if ((sam$is_centered |> is.null()) || !sam$is_centered) sam$center()
-              if (sam$vector_images |> is.null()) {
-                sam$compute_tangents()
-                sam$compute_vecs()
-              }
-              sam$vector_images
-            }, error = function(e) {
-              stop(sprintf("Error processing vector images for sample %d: %s", idx, e$message))
-            })
-          }
-        )
-      }, error = function(e) {
-        stop(sprintf("Error in compute_T while processing vector images: %s", e$message))
-      })
-
-      private$T <- tryCatch({
-        purrr::map2(
-          u, v, function(x, y) {
-            tryCatch({
-              sweep(x, 2, y, FUN = "-")
-            }, error = function(e) {
-              stop(sprintf("Error in sweep operation: %s", e$message))
-            })
-          }
-        ) |>
-          purrr::imap(
-            \(m, idx) {
-              tryCatch({
-                if (nrow(m) == 0) {
-                  stop(sprintf("Sample %d has no rows in matrix", idx))
+      u <- tryCatch(
+        {
+          private$samples |> purrr::imap(
+            \(sam, idx) {
+              tryCatch(
+                {
+                  if ((sam$is_centered |> is.null()) || !sam$is_centered) sam$center()
+                  if (sam$vector_images |> is.null()) {
+                    sam$compute_tangents()
+                    sam$compute_vecs()
+                  }
+                  sam$vector_images
+                },
+                error = function(e) {
+                  stop(sprintf("Error processing vector images for sample %d: %s", idx, e$message))
                 }
-                1:nrow(m) |>
-                  purrr::map(
-                    \(i) matrix(m[i, ], ncol = 1) %*% matrix(m[i, ], nrow = 1)
-                  ) |>
-                  Reduce(`+`, x = _)
-              }, error = function(e) {
-                stop(sprintf("Error computing outer products for sample %d: %s", idx, e$message))
-              })
+              )
+            }
+          )
+        },
+        error = function(e) {
+          stop(sprintf("Error in compute_T while processing vector images: %s", e$message))
+        }
+      )
+
+      private$T <- tryCatch(
+        {
+          purrr::map2(
+            u, v, function(x, y) {
+              tryCatch(
+                {
+                  sweep(x, 2, y, FUN = "-")
+                },
+                error = function(e) {
+                  stop(sprintf("Error in sweep operation: %s", e$message))
+                }
+              )
             }
           ) |>
-          Reduce(`+`, x = _) |>
-          Matrix::nearPD() |>
-          _$mat |>
-          Matrix::pack()
-      }, error = function(e) {
-        stop(sprintf("Error in compute_T while computing total covariance matrix: %s", e$message))
-      })
+            purrr::imap(
+              \(m, idx) {
+                tryCatch(
+                  {
+                    if (nrow(m) == 0) {
+                      stop(sprintf("Sample %d has no rows in matrix", idx))
+                    }
+                    1:nrow(m) |>
+                      purrr::map(
+                        \(i) matrix(m[i, ], ncol = 1) %*% matrix(m[i, ], nrow = 1)
+                      ) |>
+                      Reduce(`+`, x = _)
+                  },
+                  error = function(e) {
+                    stop(sprintf("Error computing outer products for sample %d: %s", idx, e$message))
+                  }
+                )
+              }
+            ) |>
+            Reduce(`+`, x = _) |>
+            Matrix::nearPD() |>
+            _$mat |>
+            Matrix::pack()
+        },
+        error = function(e) {
+          stop(sprintf("Error in compute_T while computing total covariance matrix: %s", e$message))
+        }
+      )
     }
   ),
   active = list(
