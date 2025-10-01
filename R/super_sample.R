@@ -125,7 +125,17 @@ CSuperSample <- R6::R6Class(
       private$W <- private$samples |>
         purrr::map(
           \(sam) {
-            if (sam$tangent_images |> is.null()) sam$compute_unvecs()
+            if (sam$tangent_images |> is.null()) {
+              if (sam$vector_images |> is.null()) {
+                if (sam$connectomes |> is.null()) {
+                  stop("Sample must have connectomes, vector images, or tangent images.")
+                }
+                sam$compute_tangents()
+                sam$compute_vecs()
+              } else {
+                sam$compute_tangents()
+              }
+            }
             # Ensure sample is centered around its own mean
             if ((sam$is_centered |> is.null()) || !sam$is_centered) sam$center()
             if (sam$sample_cov |> is.null()) sam$compute_sample_cov()
