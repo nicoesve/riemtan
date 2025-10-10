@@ -273,7 +273,11 @@ CSample <- R6::R6Class(
     compute_sample_cov = function() {
       if (self$vector_images |> is.null()) {
         if (length(private$tangent_handler$tangent_images) == 0) {
-          self$compute_tangents()
+          if (!is.null(private$conns)) {
+            self$compute_tangents()
+          } else {
+            stop("Cannot compute sample covariance: no connectomes, tangent images, or vector images available.")
+          }
         }
         self$compute_vecs()
       }

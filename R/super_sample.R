@@ -133,7 +133,9 @@ CSuperSample <- R6::R6Class(
                 sam$compute_tangents()
                 sam$compute_vecs()
               } else {
-                sam$compute_tangents()
+                # Sample has vector images but no tangent images
+                # Need to compute tangent images from vector images first
+                sam$compute_unvecs()
               }
             }
             # Ensure sample is centered around its own mean

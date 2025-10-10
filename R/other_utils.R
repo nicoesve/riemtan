@@ -142,7 +142,14 @@ compute_frechet_mean <-
     }
     if (length(sample$tangent_images) == 0) {
       message("tangent images were null, so they will be computed")
-      sample$compute_tangents()
+      # Check if we have connectomes, otherwise use vector images
+      if (!is.null(sample$connectomes)) {
+        sample$compute_tangents()
+      } else if (!is.null(sample$vector_images)) {
+        sample$compute_unvecs()
+      } else {
+        stop("Cannot compute tangent images: no connectomes or vector images available.")
+      }
     }
     if (!is.numeric(tol)) stop("tol must be a numeric.")
     if (max_iter < 1) stop("max_iter must be at least 1.")
