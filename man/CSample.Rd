@@ -69,7 +69,7 @@ Initialize a CSample object
   centered = NULL,
   ref_pt = NULL,
   metric_obj,
-  batch_size = 32
+  batch_size = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -177,12 +177,7 @@ None
 \subsection{Method \code{compute_fmean()}}{
 This function computes the Frechet mean of the sample.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CSample$compute_fmean(
-  tol = 0.05,
-  max_iter = 20,
-  lr = 0.2,
-  batch_size = private$._batch_size
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CSample$compute_fmean(tol = 0.05, max_iter = 20, lr = 0.2, batch_size = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

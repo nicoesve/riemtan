@@ -111,9 +111,16 @@ None. This function is called for its side effects. The result is stored in the 
 \subsection{Method \code{compute_fmean()}}{
 Compute the Frechet mean of the aggregated sample.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CSuperSample$compute_fmean()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CSuperSample$compute_fmean(batch_size = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{batch_size}}{Optional batch size parameter passed to the underlying compute_fmean function.}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 None. This function is called for its side effects. The result is stored in the \code{frechet_mean} active binding.
 }
