@@ -322,7 +322,7 @@ CSample <- R6::R6Class(
     #' @field ref_point Reference point for tangent or vectorized images
     ref_point = function() private$tangent_handler$ref_point,
 
-    #' @field distances Squared distances to the Frechet mean
+    #' @field distances Distances to the Frechet mean
     distances = function() private$dists,
 
     #' @field batch_size Batch size for compute_fmean

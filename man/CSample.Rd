@@ -33,7 +33,7 @@ This class represents a sample of connectomes, with various properties and metho
 
 \item{\code{ref_point}}{Reference point for tangent or vectorized images}
 
-\item{\code{distances}}{Squared distances to the Frechet mean}
+\item{\code{distances}}{Distances to the Frechet mean}
 
 \item{\code{batch_size}}{Batch size for compute_fmean}
 }
@@ -177,7 +177,7 @@ None
 \subsection{Method \code{compute_fmean()}}{
 This function computes the Frechet mean of the sample.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CSample$compute_fmean(tol = 0.05, max_iter = 20, lr = 0.2, batch_size = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CSample$compute_fmean(tol = 0.001, max_iter = 100, lr = 0.2, batch_size = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
