@@ -176,7 +176,7 @@ CSample <- R6::R6Class(
     #' @param batch_size The batch size (default is the instance's batch_size).
     #'
     #' @return None
-    compute_fmean = function(tol = 0.05, max_iter = 20, lr = 0.2, batch_size = NULL) {
+    compute_fmean = function(tol = 0.001, max_iter = 100, lr = 0.2, batch_size = NULL) {
       if (is.null(batch_size)) {
         batch_size <- if (is.null(private$._batch_size)) private$n else private$._batch_size
       }
