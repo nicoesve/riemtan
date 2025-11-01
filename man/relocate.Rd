@@ -4,7 +4,7 @@
 \alias{relocate}
 \title{Relocate Tangent Representations to a New Reference Point}
 \usage{
-relocate(old_ref, new_ref, images, met)
+relocate(old_ref, new_ref, images, met, progress = FALSE)
 }
 \arguments{
 \item{old_ref}{A reference point on the manifold to be replaced. Must be an object of class \code{dppMatrix} from the Matrix package.}
@@ -14,12 +14,20 @@ relocate(old_ref, new_ref, images, met)
 \item{images}{A list of tangent representations relative to the old reference point. Each element in the list must be an object of class \code{dspMatrix}.}
 
 \item{met}{A metric object of class \code{rmetric}, containing functions for Riemannian operations (logarithmic map, exponential map, vectorization, and inverse vectorization).}
+
+\item{progress}{Logical indicating whether to show progress during computation (default: FALSE). Requires progressr package.}
 }
 \value{
 A list of tangent representations relative to the new reference point. Each element in the returned list will be an object of class \code{dspMatrix}.
 }
 \description{
 Changes the reference point for tangent space representations on a Riemannian manifold.
+Supports parallel processing via the futureverse framework for improved performance on large datasets.
+}
+\details{
+This function uses parallel processing when the number of images exceeds a threshold and
+parallel processing is enabled via \code{\link[=set_parallel_plan]{set_parallel_plan()}}. For small datasets, sequential
+processing is used automatically to avoid parallelization overhead.
 }
 \examples{
 if (requireNamespace("Matrix", quietly = TRUE)) {

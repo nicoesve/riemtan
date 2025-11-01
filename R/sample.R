@@ -7,6 +7,7 @@ CSample <- R6::R6Class(
   classname = "CSample",
   private = list(
     conns = NULL, vec_imgs = NULL,
+    backend = NULL,
     n = NULL, p = NULL, d = NULL, centered = NULL,
     f_mean = NULL, metric_obj = NULL, var = NULL, s_cov = NULL,
     tangent_handler = NULL,
@@ -23,26 +24,55 @@ CSample <- R6::R6Class(
     #' @param centered Boolean indicating whether tangent or vectorized images are centered (default is NULL).
     #' @param metric_obj Object of class `rmetric` representing the Riemannian metric used.
     #' @param batch_size The batch size for compute_fmean (default is 32).
+    #' @param backend A DataBackend object (ListBackend or ParquetBackend). If NULL and conns is provided, a ListBackend will be created automatically.
     #'
     #' @return A new `CSample` object.
     initialize = function(conns = NULL, tan_imgs = NULL,
                           vec_imgs = NULL, centered = NULL,
-                          ref_pt = NULL, metric_obj, batch_size = NULL) {
+                          ref_pt = NULL, metric_obj, batch_size = NULL,
+                          backend = NULL) {
       # Validate and set the metric
       validate_metric(metric_obj)
       private$metric_obj <- metric_obj
       private$tangent_handler <- TangentImageHandler$new(metric_obj, ref_pt)
 
 
-      # If connectomes are provided
-      if (!is.null(conns)) {
-        validate_conns(conns, tan_imgs, vec_imgs, centered)
+      # If backend or connectomes are provided
+      if (!is.null(backend) || !is.null(conns)) {
+        # Validate mutually exclusive options
+        if (!is.null(backend) && !is.null(conns)) {
+          stop("Cannot provide both 'backend' and 'conns'. Use one or the other.")
+        }
 
-        # Set dimensions and initialize properties
-        n <- length(conns)
-        p <- nrow(conns[[1]])
+        # Validate inputs based on what was provided
+        if (!is.null(conns)) {
+          validate_conns(conns, tan_imgs, vec_imgs, centered)
+        } else {
+          # When using backend, ensure tan_imgs and vec_imgs are NULL
+          if (!is.null(tan_imgs) || !is.null(vec_imgs)) {
+            stop("When using backend, tan_imgs and vec_imgs must be NULL.")
+          }
+        }
+
+        # Initialize backend
+        if (!is.null(backend)) {
+          # Validate backend is a DataBackend
+          if (!inherits(backend, "DataBackend")) {
+            stop("backend must inherit from DataBackend class")
+          }
+          private$backend <- backend
+        } else {
+          # Create ListBackend from conns
+          private$backend <- ListBackend$new(conns)
+        }
+
+        # Get dimensions from backend
+        n <- private$backend$length()
+        p <- private$backend$get_dimensions()
         d <- p * (p + 1) / 2
-        private$conns <- conns
+
+        # Initialize properties
+        private$conns <- NULL  # Will be populated lazily when needed
         private$vec_imgs <- NULL
         private$n <- n
         private$p <- p
@@ -109,61 +139,170 @@ CSample <- R6::R6Class(
     },
 
     #' @description
+    #' Load connectomes in parallel batches from ParquetBackend.
+    #' This method is particularly useful for large Parquet-backed datasets
+    #' where loading all matrices at once would be memory-prohibitive.
+    #'
+    #' @param indices Optional vector of indices to load. If NULL (default), loads all matrices.
+    #' @param batch_size Number of matrices to load per batch (default: 50).
+    #'   Larger batches use more memory but may be faster.
+    #' @param progress Logical indicating whether to show progress (default: FALSE).
+    #'
+    #' @return A list of dppMatrix objects.
+    #'
+    #' @details
+    #' This method only works when the CSample was initialized with a ParquetBackend.
+    #' It loads matrices in parallel batches, clearing the cache between batches to
+    #' manage memory usage. Sequential loading is used for ListBackend.
+    #'
+    #' @examples
+    #' \dontrun{
+    #' # Create CSample with ParquetBackend
+    #' backend <- create_parquet_backend("my_data")
+    #' sample <- CSample$new(backend = backend, metric_obj = airm)
+    #'
+    #' # Load first 100 matrices in batches of 20
+    #' conns <- sample$load_connectomes_batched(indices = 1:100, batch_size = 20)
+    #' }
+    load_connectomes_batched = function(indices = NULL, batch_size = 50, progress = FALSE) {
+      if (is.null(private$backend)) {
+        stop("This method requires a backend. Use self$connectomes instead.")
+      }
+
+      # Default to all indices
+      if (is.null(indices)) {
+        indices <- 1:private$n
+      }
+
+      # Validate indices
+      if (!is.numeric(indices) || any(indices < 1) || any(indices > private$n)) {
+        stop(sprintf("All indices must be in range [1, %d]", private$n))
+      }
+
+      # For ParquetBackend, use batch loading with cache management
+      if (inherits(private$backend, "ParquetBackend")) {
+        n_total <- length(indices)
+        n_batches <- ceiling(n_total / batch_size)
+        all_conns <- vector("list", n_total)
+
+        if (progress) {
+          message(sprintf("Loading %d matrices in %d batches", n_total, n_batches))
+        }
+
+        for (i in seq_len(n_batches)) {
+          start_idx <- (i - 1) * batch_size + 1
+          end_idx <- min(i * batch_size, n_total)
+          batch_indices <- indices[start_idx:end_idx]
+
+          if (progress) {
+            message(sprintf("Batch %d/%d: loading matrices %d-%d",
+                            i, n_batches, batch_indices[1], batch_indices[length(batch_indices)]))
+          }
+
+          # Load batch in parallel
+          batch_conns <- private$backend$get_matrices_parallel(batch_indices, progress = FALSE)
+          all_conns[start_idx:end_idx] <- batch_conns
+
+          # Clear cache between batches (except last batch)
+          if (i < n_batches) {
+            private$backend$clear_cache()
+          }
+        }
+
+        return(all_conns)
+      } else {
+        # For ListBackend, just get the requested indices
+        return(lapply(indices, \(i) private$backend$get_matrix(i)))
+      }
+    },
+
+    #' @description
     #' This function computes the tangent images from the connectomes.
     #'
     #' @param ref_pt A reference point, which must be a `dppMatrix` object (default is `default_ref_pt`).
+    #' @param progress Logical indicating whether to show progress (default: FALSE).
     #'
     #' @return None
     #' @details Error if `ref_pt` is not a `dppMatrix` object or if `conns` is not specified.
-    compute_tangents = function(ref_pt = default_ref_pt(private$p)) {
+    compute_tangents = function(ref_pt = default_ref_pt(private$p), progress = FALSE) {
       if (!inherits(ref_pt, "dppMatrix")) {
         stop("ref_pt must be a dppMatrix object.")
       }
-      if (is.null(private$conns)) stop("conns must be specified.")
+      if (is.null(private$backend) && is.null(private$conns)) {
+        stop("conns must be specified.")
+      }
       private$tangent_handler$set_reference_point(ref_pt)
-      private$tangent_handler$compute_tangents(private$conns)
+      private$tangent_handler$compute_tangents(self$connectomes, progress = progress)
     },
 
     #' @description
     #' This function computes the connectomes from the tangent images.
     #'
+    #' @param progress Logical indicating whether to show progress (default: FALSE).
     #' @return None
     #' @details Error if tangent images are not specified.
-    compute_conns = function() {
+    compute_conns = function(progress = FALSE) {
       if (is.null(private$tangent_handler$tangent_images)) {
         stop("tangent images must be specified.")
       }
-      private$conns <- private$tangent_handler$compute_conns()
+      private$conns <- private$tangent_handler$compute_conns(progress = progress)
     },
 
     #' @description
     #' This function computes the vectorized tangent images from the tangent images.
     #'
+    #' @param progress Logical indicating whether to show progress (default: FALSE).
     #' @return None
     #' @details Error if tangent images are not specified.
-    compute_vecs = function() {
+    compute_vecs = function(progress = FALSE) {
       if (is.null(private$tangent_handler$tangent_images)) {
         stop("tangent images must be specified.")
       }
-      private$vec_imgs <- private$tangent_handler$compute_vecs()
+      private$vec_imgs <- private$tangent_handler$compute_vecs(progress = progress)
     },
 
     #' @description
     #' This function computes the tangent images from the vector images.
     #'
+    #' @param progress Logical indicating whether to show progress (default: FALSE).
     #' @return None
     #' @details Error if `vec_imgs` is not specified.
-    compute_unvecs = function() {
+    compute_unvecs = function(progress = FALSE) {
       if (is.null(self$vector_images)) stop("vec_imgs must be specified.")
+
+      n <- nrow(self$vector_images)
+      indices <- 1:n
+
+      # Use parallel processing if beneficial
+      if (should_parallelize(n)) {
+        tan_imgs <- with_progress({
+          p <- create_progressor(n, enable = progress)
+          furrr::future_map(
+            indices,
+            \(i) {
+              result <- private$metric_obj$unvec(
+                private$tangent_handler$ref_point,
+                self$vector_images[i, ]
+              )
+              p()
+              result
+            },
+            .options = furrr::furrr_options(seed = TRUE)
+          )
+        }, name = "Computing tangent images from vectors", enable = progress)
+      } else {
+        # Sequential processing
+        tan_imgs <- purrr::map(indices, \(i) {
+          private$metric_obj$unvec(
+            private$tangent_handler$ref_point,
+            self$vector_images[i, ]
+          )
+        })
+      }
+
       private$tangent_handler$set_tangent_images(
         private$tangent_handler$ref_point,
-        1:nrow(self$vector_images) |>
-          purrr::map(\(i) {
-            private$metric_obj$unvec(
-              private$tangent_handler$ref_point,
-              self$vector_images[i, ]
-            )
-          })
+        tan_imgs
       )
     },
 
@@ -174,30 +313,32 @@ CSample <- R6::R6Class(
     #' @param max_iter Maximum number of iterations for the computation (default is 20).
     #' @param lr Learning rate for the optimization algorithm (default is 0.2).
     #' @param batch_size The batch size (default is the instance's batch_size).
+    #' @param progress Logical indicating whether to show progress (default: FALSE).
     #'
     #' @return None
-    compute_fmean = function(tol = 0.001, max_iter = 100, lr = 0.2, batch_size = NULL) {
+    compute_fmean = function(tol = 0.001, max_iter = 100, lr = 0.2, batch_size = NULL, progress = FALSE) {
       if (is.null(batch_size)) {
         batch_size <- if (is.null(private$._batch_size)) private$n else private$._batch_size
       }
-      private$f_mean <- compute_frechet_mean(self, tol, max_iter, lr, batch_size)
+      private$f_mean <- compute_frechet_mean(self, tol, max_iter, lr, batch_size, progress = progress)
     },
 
     #' @description
     #' This function changes the reference point for the tangent images.
     #'
     #' @param new_ref_pt A new reference point, which must be a `dppMatrix` object.
+    #' @param progress Logical indicating whether to show progress (default: FALSE).
     #'
     #' @return None
     #' @details Error if tangent images have not been computed or if `new_ref_pt` is not a `dppMatrix` object.
-    change_ref_pt = function(new_ref_pt) {
+    change_ref_pt = function(new_ref_pt, progress = FALSE) {
       if (is.null(private$tangent_handler$tangent_images)) {
         stop("tangent images have not been computed")
       }
       if (!inherits(new_ref_pt, "dppMatrix")) {
         stop("new_ref_pt must be a dppMatrix object.")
       }
-      private$tangent_handler$relocate_tangents(new_ref_pt)
+      private$tangent_handler$relocate_tangents(new_ref_pt, progress = progress)
     },
 
     #' @description Center the sample
@@ -273,7 +414,7 @@ CSample <- R6::R6Class(
     compute_sample_cov = function() {
       if (self$vector_images |> is.null()) {
         if (length(private$tangent_handler$tangent_images) == 0) {
-          if (!is.null(private$conns)) {
+          if (!is.null(private$backend) || !is.null(private$conns)) {
             self$compute_tangents()
           } else {
             stop("Cannot compute sample covariance: no connectomes, tangent images, or vector images available.")
@@ -287,7 +428,13 @@ CSample <- R6::R6Class(
   ),
   active = list(
     #' @field connectomes Connectomes data
-    connectomes = function() private$conns,
+    connectomes = function() {
+      # Lazy load from backend if needed
+      if (is.null(private$conns) && !is.null(private$backend)) {
+        private$conns <- private$backend$get_all_matrices()
+      }
+      private$conns
+    },
 
     #' @field tangent_images Tangent images data
     tangent_images = function() private$tangent_handler$tangent_images,

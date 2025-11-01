@@ -1,0 +1,113 @@
+# EXP-RT-001: Batching Effect on Frechet Mean Computation
+# Experimental parameters for riemtan package optimization
+
+experiment:
+  id: EXP-RT-001
+  title: "Batching Effect on Frechet Mean Computation"
+  date: 2025-10-24
+  project: riemtan
+  agent: Toby Esterhase
+
+hypothesis: |
+  Batching in compute_frechet_mean() speeds up computation when multiple cores
+  are available because the relocate() function processes batches in parallel.
+
+design:
+  factorial:
+    batch_sizes: [8, 16, 32, 64, 128, 256]
+    core_counts: [1, 2, 4, 8, 16, 32]
+    replications: 10
+
+  data_generation:
+    sample_size: 500  # n
+    matrix_dimension: 10  # p (10x10 SPD matrices)
+    metric: AIRM  # Affine Invariant Riemannian Metric
+
+  reference_point:
+    type: identity  # 10x10 identity matrix
+
+  dispersion:
+    type: identity  # 10x10 identity for covariance
+    multiplier: 0.1  # Scale for dispersion
+
+frechet_mean_params:
+  tol: 0.05
+  max_iter: 50  # Increased from 20 for better convergence
+  lr: 0.05  # Reduced from 0.2 for numerical stability
+  # batch_size: varies per experimental condition
+  # Note: Parameters adjusted after Phase 2 numerical instability with lr=0.2
+
+response_variables:
+  primary: computation_time_seconds
+  secondary:
+    - iterations_to_convergence
+    - final_delta
+    - cpu_utilization
+
+cluster:
+  hostname: bigred200.uits.iu.edu
+  account: r00582
+  partition: general
+  home_dir: /N/u/nescobar/BigRed200/riemtan-dev
+  slate_dir: /N/slate/nescoba/experiments/EXP-RT-001
+
+  resources:
+    max_cpus: 32
+    memory_gb: 32
+    walltime_hours: 2
+
+  email: nescoba@iu.edu
+  r_module: r/4.5.1
+
+phases:
+  phase_0:
+    name: Reconnaissance
+    duration_hours: 1
+    objective: Understand implementation and measurement points
+
+  phase_1:
+    name: Minimal Local Test
+    duration_hours: 1
+    conditions: 1
+    replications: 1
+    objective: Verify timing measurement works
+
+  phase_2:
+    name: Local Subset Test
+    duration_hours: 2
+    batch_sizes: [16, 64, 256]
+    replications: 3
+    objective: Validate measurement approach
+
+  phase_3:
+    name: Cluster Infrastructure Test
+    duration_hours: 2
+    batch_sizes: [32, 128]
+    core_counts: [4, 16]
+    replications: 2
+    total_conditions: 8
+    objective: Validate cluster setup
+
+  phase_4:
+    name: Full Cluster Experiment
+    duration_hours: 6-8
+    batch_sizes: [8, 16, 32, 64, 128, 256]
+    core_counts: [1, 2, 4, 8, 16, 32]
+    replications: 10
+    total_conditions: 360
+    objective: Complete factorial design
+
+  phase_5:
+    name: Analysis and Reporting
+    duration_hours: 3
+    objective: Statistical analysis and documentation
+
+expected_outcomes:
+  - Identify optimal batch_size for different core counts
+  - Quantify speedup from parallelization
+  - Provide recommendations for riemtan defaults
+  - Determine if batch_size should be adaptive
+
+notes: |
+  Following infrastructure patterns from methods_paper experiments (EXP-MP-001, EXP-MP-002).
+  SSH execution requires manual Control intervention per LOG-280 lessons learned.

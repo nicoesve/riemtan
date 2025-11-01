@@ -1,6 +1,6 @@
 Package: riemtan
 Title: Riemannian Metrics for Symmetric Positive Definite Matrices
-Version: 0.2.3
+Version: 0.2.5
 Authors@R: c(
     person(
         given = "Nicolas",
@@ -25,7 +25,11 @@ LinkingTo:
     RcppEigen
 Depends: 
     R (>= 4.3.0)
-Imports: 
+Imports:
+    arrow,
+    future,
+    furrr,
+    jsonlite,
     Matrix,
     methods,
     R6,
@@ -33,7 +37,8 @@ Imports:
     MASS,
     matrixStats,
     Rcpp (>= 1.0.0)
-Suggests: 
+Suggests:
+    progressr,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
