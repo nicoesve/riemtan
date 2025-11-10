@@ -6,6 +6,7 @@
 # Ignore compiled object files
 src/*.o
 src/*.so
+src/*.dll
 
 CLAUDE.md
 .claude/
