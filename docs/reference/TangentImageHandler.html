@@ -9,7 +9,7 @@ TangentImageHandler Class"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">riemtan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,6 +19,11 @@ TangentImageHandler Class"></head><body>
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/riemtan.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/performance-benchmarks.html">Performance Benchmarking and Optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/using-parquet.html">Using Parquet Storage for Large Datasets</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -109,13 +114,17 @@ Set a new reference point.</p>
 <h3 id="method-set-reference-point-">Method <code>set_reference_point()</code><a class="anchor" aria-label="anchor" href="#method-set-reference-point-"></a></h3>
 <p>If tangent images have been created, it recomputes them by mapping to the manifold and then to the new tangent space.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TangentImageHandler</span><span class="op">$</span><span class="fu">set_reference_point</span><span class="op">(</span><span class="va">new_ref_pt</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TangentImageHandler</span><span class="op">$</span><span class="fu">set_reference_point</span><span class="op">(</span><span class="va">new_ref_pt</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>new_ref_pt</code></dt>
 <dd><p>A new reference point of class dppMatrix.</p></dd>
+
+
+<dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE)</p></dd>
 
 
 </dl><p></p></div>
@@ -131,13 +140,17 @@ Computes the tangent images from the points in the manifold</p>
 
 <div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TangentImageHandler</span><span class="op">$</span><span class="fu">compute_tangents</span><span class="op">(</span><span class="va">manifold_points</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TangentImageHandler</span><span class="op">$</span><span class="fu">compute_tangents</span><span class="op">(</span><span class="va">manifold_points</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>manifold_points</code></dt>
 <dd><p>A list of connectomes</p></dd>
+
+
+<dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE)</p></dd>
 
 
 </dl><p></p></div>
@@ -153,9 +166,17 @@ Computes vectorizations from tangent images</p>
 
 <div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TangentImageHandler</span><span class="op">$</span><span class="fu">compute_vecs</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TangentImageHandler</span><span class="op">$</span><span class="fu">compute_vecs</span><span class="op">(</span>progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE)</p></dd>
+
+
+</dl><p></p></div>
+</div>
 <div class="section">
 <h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>A matrix, each row of which is a vectorization
@@ -167,9 +188,17 @@ Computes connectomes from tangent images</p>
 
 <div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TangentImageHandler</span><span class="op">$</span><span class="fu">compute_conns</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TangentImageHandler</span><span class="op">$</span><span class="fu">compute_conns</span><span class="op">(</span>progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE)</p></dd>
+
+
+</dl><p></p></div>
+</div>
 <div class="section">
 <h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>A list of connectomes
@@ -185,7 +214,7 @@ Setter for the tangent images</p>
 </div>
 
 <div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>reference_point</code></dt>
 <dd><p>A connectome</p></dd>
 
@@ -211,7 +240,7 @@ Appends a matrix to the list of tangent images</p>
 </div>
 
 <div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>image</code></dt>
 <dd><p>Matrix to be added</p></dd>
 
@@ -238,13 +267,17 @@ Wrapper for set_reference_point</p>
 
 <div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TangentImageHandler</span><span class="op">$</span><span class="fu">relocate_tangents</span><span class="op">(</span><span class="va">new_ref_pt</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">TangentImageHandler</span><span class="op">$</span><span class="fu">relocate_tangents</span><span class="op">(</span><span class="va">new_ref_pt</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>new_ref_pt</code></dt>
 <dd><p>The new reference point</p></dd>
+
+
+<dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE)</p></dd>
 
 
 </dl><p></p></div>
@@ -262,7 +295,7 @@ Wrapper for set_reference_point</p>
 </div>
 
 <div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
@@ -283,7 +316,7 @@ Wrapper for set_reference_point</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

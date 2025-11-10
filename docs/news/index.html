@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">riemtan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,6 +17,11 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/riemtan.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/performance-benchmarks.html">Performance Benchmarking and Optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/using-parquet.html">Using Parquet Storage for Large Datasets</a></li>
+  </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -33,6 +38,187 @@
       <small>Source: <a href="https://github.com/nicoesve/riemtan/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.5" id="riemtan-025">riemtan 0.2.5<a class="anchor" aria-label="anchor" href="#riemtan-025"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-2-5">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-2-5"></a></h3>
+<div class="section level4">
+<h4 id="futureversefurrr-parallel-processing-0-2-5">Futureverse/furrr Parallel Processing<a class="anchor" aria-label="anchor" href="#futureversefurrr-parallel-processing-0-2-5"></a></h4>
+<ul><li>Added comprehensive parallel processing support via the futureverse framework (future + furrr packages)</li>
+<li>
+<strong>Cross-platform parallelization</strong>: Works on all platforms including Windows (replaces platform-specific <code><a href="https://rdrr.io/r/parallel/mcdummies.html" class="external-link">parallel::mclapply</a></code>)</li>
+<li>
+<strong>Intelligent auto-detection</strong>: Automatically uses parallel processing when beneficial based on data size</li>
+<li>
+<strong>Flexible configuration</strong>: Users can control parallelization via <code><a href="../reference/set_parallel_plan.html">set_parallel_plan()</a></code>
+</li>
+<li>
+<strong>Progress reporting</strong>: Optional progress bars via progressr package integration</li>
+</ul><div class="section level5">
+<h5 id="parallel-processing-infrastructure-0-2-5">Parallel Processing Infrastructure<a class="anchor" aria-label="anchor" href="#parallel-processing-infrastructure-0-2-5"></a></h5>
+<ul><li>New module <code>R/parallel_config.R</code>:
+<ul><li>
+<code><a href="../reference/set_parallel_plan.html">set_parallel_plan()</a></code>: Configure parallel strategy (sequential, multisession, multicore, cluster)</li>
+<li>
+<code><a href="../reference/is_parallel_enabled.html">is_parallel_enabled()</a></code>: Check parallel status</li>
+<li>
+<code><a href="../reference/should_parallelize.html">should_parallelize()</a></code>: Auto-detect when to parallelize based on threshold</li>
+<li>
+<code><a href="../reference/get_n_workers.html">get_n_workers()</a></code>: Query number of parallel workers</li>
+<li>
+<code><a href="../reference/reset_parallel_plan.html">reset_parallel_plan()</a></code>: Reset to sequential mode</li>
+</ul></li>
+<li>New module <code>R/progress_utils.R</code>:
+<ul><li>
+<code><a href="../reference/with_progress.html">with_progress()</a></code>: Execute expressions with progress reporting</li>
+<li>
+<code><a href="../reference/create_progressor.html">create_progressor()</a></code>: Create progress reporters for loops</li>
+<li>
+<code><a href="../reference/configure_progress.html">configure_progress()</a></code>: Configure progress handlers</li>
+<li>
+<code><a href="../reference/is_progress_available.html">is_progress_available()</a></code>: Check progressr availability</li>
+</ul></li>
+</ul></div>
+<div class="section level5">
+<h5 id="enhanced-components-with-parallel-support-0-2-5">Enhanced Components with Parallel Support<a class="anchor" aria-label="anchor" href="#enhanced-components-with-parallel-support-0-2-5"></a></h5>
+<ul><li>
+<strong>TangentImageHandler</strong> (<code>R/tangent_handler.R</code>):
+<ul><li>
+<code>compute_tangents()</code>: Parallel tangent space projections</li>
+<li>
+<code>compute_vecs()</code>: Parallel vectorization</li>
+<li>
+<code>compute_conns()</code>: Parallel exponential maps</li>
+<li>
+<code>set_reference_point()</code>: Parallel tangent relocation</li>
+<li>All methods support optional <code>progress</code> parameter</li>
+</ul></li>
+<li>
+<strong>ParquetBackend</strong> (<code>R/parquet_backend.R</code>):
+<ul><li>
+<code>get_all_matrices()</code>: Parallel matrix loading from Parquet files</li>
+<li>
+<code>get_matrices_parallel()</code>: New method for batch parallel loading</li>
+<li>Automatic parallelization for I/O-bound operations</li>
+</ul></li>
+<li>
+<strong>Core Algorithms</strong> (<code>R/other_utils.R</code>):
+<ul><li>
+<code><a href="../reference/relocate.html">relocate()</a></code>: Now uses <code><a href="https://furrr.futureverse.org/reference/future_map.html" class="external-link">furrr::future_map()</a></code> instead of <code><a href="https://rdrr.io/r/parallel/mcdummies.html" class="external-link">parallel::mclapply</a></code> (cross-platform!)</li>
+<li>
+<code><a href="../reference/compute_frechet_mean.html">compute_frechet_mean()</a></code>: Parallel processing support with progress parameter</li>
+<li>Both functions support <code>progress</code> parameter</li>
+</ul></li>
+<li>
+<strong>CSample Class</strong> (<code>R/sample.R</code>):
+<ul><li>
+<code>compute_tangents()</code>: Pass-through progress support</li>
+<li>
+<code>compute_vecs()</code>: Pass-through progress support</li>
+<li>
+<code>compute_unvecs()</code>: Parallel unvectorizati with progress</li>
+<li>
+<code>compute_conns()</code>: Pass-through progress support</li>
+<li>
+<code>compute_fmean()</code>: Pass-through progress support</li>
+<li>
+<code>change_ref_pt()</code>: Pass-through progress support</li>
+<li>
+<code>load_connectomes_batched()</code>: <strong>NEW</strong> - Batch loading with memory management for large Parquet datasets</li>
+</ul></li>
+</ul></div>
+</div>
+</div>
+<div class="section level3">
+<h3 id="performance-improvements-0-2-5">Performance Improvements<a class="anchor" aria-label="anchor" href="#performance-improvements-0-2-5"></a></h3>
+<ul><li>
+<strong>5-10x speedup</strong> for loading large Parquet datasets (parallel I/O)</li>
+<li>
+<strong>3-8x speedup</strong> for tangent computations on large samples (scales with workers)</li>
+<li>
+<strong>2-5x speedup</strong> for Frechet mean computation (n &gt; 100)</li>
+<li>Reduced overhead for small datasets via intelligent threshold-based auto-detection</li>
+</ul></div>
+<div class="section level3">
+<h3 id="breaking-changes-0-2-5">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-2-5"></a></h3>
+<ul><li>
+<code><a href="../reference/relocate.html">relocate()</a></code> function signature changed: added optional <code>progress</code> parameter (default: FALSE)
+<ul><li>Existing code continues to work without modification</li>
+</ul></li>
+<li>
+<code><a href="../reference/compute_frechet_mean.html">compute_frechet_mean()</a></code> function signature changed: added optional <code>progress</code> parameter
+<ul><li>Existing code continues to work without modification</li>
+</ul></li>
+</ul></div>
+<div class="section level3">
+<h3 id="dependencies-0-2-5">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies-0-2-5"></a></h3>
+<ul><li>Added <code>future</code> to Imports (cross-platform parallel backend)</li>
+<li>Added <code>furrr</code> to Imports (future-based parallel map functions)</li>
+<li>Added <code>progressr</code> to Suggests (optional progress reporting)</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-2-5">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-2-5"></a></h3>
+<ul><li>Updated vignettes with parallel processing examples</li>
+<li>New performance benchmarking guidance</li>
+<li>Comprehensive roxygen2 documentation for all new functions</li>
+</ul></div>
+<div class="section level3">
+<h3 id="internal-changes-0-2-5">Internal Changes<a class="anchor" aria-label="anchor" href="#internal-changes-0-2-5"></a></h3>
+<ul><li>Removed dependency on <code><a href="https://rdrr.io/r/parallel/mcdummies.html" class="external-link">parallel::mclapply</a></code> (platform-specific, Windows incompatible)</li>
+<li>All parallel operations now use futureverse framework for consistency</li>
+<li>Progress reporting infrastructure integrated throughout codebase</li>
+</ul><hr></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.4" id="riemtan-024">riemtan 0.2.4<a class="anchor" aria-label="anchor" href="#riemtan-024"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-2-4">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-2-4"></a></h3>
+<div class="section level4">
+<h4 id="apache-arrowparquet-support-0-2-4">Apache Arrow/Parquet Support<a class="anchor" aria-label="anchor" href="#apache-arrowparquet-support-0-2-4"></a></h4>
+<ul><li>Added support for Apache Arrow Parquet format for efficient storage and lazy loading of large connectome datasets</li>
+<li>Introduced backend abstraction layer (<code>DataBackend</code>, <code>ListBackend</code>, <code>ParquetBackend</code>) to decouple storage from business logic</li>
+<li>
+<code>ListBackend</code>: Wraps existing list-based storage for backwards compatibility</li>
+<li>
+<code>ParquetBackend</code>: Lazy-loads matrices from Parquet files with LRU caching (default cache size: 10 matrices)</li>
+<li>New I/O functions:
+<ul><li>
+<code><a href="../reference/write_connectomes_to_parquet.html">write_connectomes_to_parquet()</a></code>: Export matrices to Parquet format with metadata</li>
+<li>
+<code><a href="../reference/validate_parquet_directory.html">validate_parquet_directory()</a></code>: Validate Parquet directory structure</li>
+<li>
+<code><a href="../reference/create_parquet_backend.html">create_parquet_backend()</a></code>: Convenience function to create ParquetBackend</li>
+</ul></li>
+<li>
+<code>CSample</code> now accepts <code>backend</code> parameter for flexible storage options</li>
+<li>Full backwards compatibility: existing code using lists continues to work unchanged</li>
+<li>Metadata support: Store subject IDs, data provenance, and custom metadata with Parquet datasets</li>
+<li>New vignette: “Using Parquet Storage for Large Datasets”</li>
+</ul></div>
+<div class="section level4">
+<h4 id="validation-functions-0-2-4">Validation Functions<a class="anchor" aria-label="anchor" href="#validation-functions-0-2-4"></a></h4>
+<ul><li>Added <code><a href="../reference/validate_backend.html">validate_backend()</a></code>: Validates backend objects</li>
+<li>Added <code><a href="../reference/validate_parquet_dir.html">validate_parquet_dir()</a></code>: Validates Parquet directory structure</li>
+</ul></div>
+</div>
+<div class="section level3">
+<h3 id="internal-changes-0-2-4">Internal Changes<a class="anchor" aria-label="anchor" href="#internal-changes-0-2-4"></a></h3>
+<ul><li>Modified <code>CSample</code> to use backend abstraction internally</li>
+<li>Updated <code>CSample$connectomes</code> active binding to support lazy loading</li>
+<li>
+<code>CSuperSample</code> works transparently with all backend types</li>
+</ul></div>
+<div class="section level3">
+<h3 id="dependencies-0-2-4">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies-0-2-4"></a></h3>
+<ul><li>Added <code>arrow</code> to Imports for Parquet support</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-2-4">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-2-4"></a></h3>
+<ul><li>Updated package documentation with roxygen2</li>
+<li>Added comprehensive test suite for Parquet backend (50+ tests)</li>
+<li>New vignette explaining Parquet backend usage</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="riemtan-020">riemtan 0.2.0<a class="anchor" aria-label="anchor" href="#riemtan-020"></a></h2>
 <div class="section level3">
@@ -100,7 +286,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

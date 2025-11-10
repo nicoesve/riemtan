@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">riemtan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,6 +17,11 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/riemtan.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/performance-benchmarks.html">Performance Benchmarking and Optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/using-parquet.html">Using Parquet Storage for Large Datasets</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -44,24 +49,6 @@
 
 
       <dl><dt>
-
-          <code><a href="CSample.html">CSample</a></code>
-
-        </dt>
-        <dd>CSample Class</dd>
-      </dl><dl><dt>
-
-          <code><a href="CSuperSample.html">CSuperSample</a></code>
-
-        </dt>
-        <dd>CSuperSample Class</dd>
-      </dl><dl><dt>
-
-          <code><a href="TangentImageHandler.html">TangentImageHandler</a></code>
-
-        </dt>
-        <dd>TangentImageHandler Class</dd>
-      </dl><dl><dt>
 
           <code><a href="airm_exp.html">airm_exp()</a></code>
 
@@ -117,6 +104,30 @@
         <dd>Compute the Frechet Mean</dd>
       </dl><dl><dt>
 
+          <code><a href="configure_progress.html">configure_progress()</a></code>
+
+        </dt>
+        <dd>Configure Progress Handlers</dd>
+      </dl><dl><dt>
+
+          <code><a href="create_parquet_backend.html">create_parquet_backend()</a></code>
+
+        </dt>
+        <dd>Create ParquetBackend from Directory</dd>
+      </dl><dl><dt>
+
+          <code><a href="CSample.html">CSample</a></code>
+
+        </dt>
+        <dd>CSample Class</dd>
+      </dl><dl><dt>
+
+          <code><a href="CSuperSample.html">CSuperSample</a></code>
+
+        </dt>
+        <dd>CSuperSample Class</dd>
+      </dl><dl><dt>
+
           <code><a href="default_ref_pt.html">default_ref_pt()</a></code>
 
         </dt>
@@ -159,6 +170,12 @@
         <dd>Vectorize at Identity Matrix (Euclidean)</dd>
       </dl><dl><dt>
 
+          <code><a href="get_n_workers.html">get_n_workers()</a></code>
+
+        </dt>
+        <dd>Get Current Number of Parallel Workers</dd>
+      </dl><dl><dt>
+
           <code><a href="half_underscore.html">half_underscore()</a></code>
 
         </dt>
@@ -169,6 +186,24 @@
 
         </dt>
         <dd>Create an Identity Matrix</dd>
+      </dl><dl><dt>
+
+          <code><a href="is_parallel_enabled.html">is_parallel_enabled()</a></code>
+
+        </dt>
+        <dd>Check if Parallel Processing is Enabled</dd>
+      </dl><dl><dt>
+
+          <code><a href="is_progress_available.html">is_progress_available()</a></code>
+
+        </dt>
+        <dd>Check if Progress Reporting is Available</dd>
+      </dl><dl><dt>
+
+          <code><a href="ListBackend.html">ListBackend</a></code>
+
+        </dt>
+        <dd>ListBackend Class</dd>
       </dl><dl><dt>
 
           <code><a href="log_cholesky_exp.html">log_cholesky_exp()</a></code>
@@ -231,10 +266,34 @@
         <dd>Pre-configured Riemannian metrics for SPD matrices</dd>
       </dl><dl><dt>
 
+          <code><a href="parallel_config.html">parallel_config</a></code>
+
+        </dt>
+        <dd>Parallel Processing Configuration for riemtan</dd>
+      </dl><dl><dt>
+
+          <code><a href="ParquetBackend.html">ParquetBackend</a></code>
+
+        </dt>
+        <dd>ParquetBackend Class</dd>
+      </dl><dl><dt>
+
+          <code><a href="progress_utils.html">progress_utils</a></code>
+
+        </dt>
+        <dd>Progress Reporting Utilities for riemtan</dd>
+      </dl><dl><dt>
+
           <code><a href="relocate.html">relocate()</a></code>
 
         </dt>
         <dd>Relocate Tangent Representations to a New Reference Point</dd>
+      </dl><dl><dt>
+
+          <code><a href="reset_parallel_plan.html">reset_parallel_plan()</a></code>
+
+        </dt>
+        <dd>Reset Parallel Plan to Sequential</dd>
       </dl><dl><dt>
 
           <code><a href="rspdnorm.html">rspdnorm()</a></code>
@@ -249,6 +308,18 @@
         <dd>Wrapper for the matrix logarithm</dd>
       </dl><dl><dt>
 
+          <code><a href="set_parallel_plan.html">set_parallel_plan()</a></code>
+
+        </dt>
+        <dd>Set Parallel Processing Plan</dd>
+      </dl><dl><dt>
+
+          <code><a href="should_parallelize.html">should_parallelize()</a></code>
+
+        </dt>
+        <dd>Decide Whether to Use Parallel Processing</dd>
+      </dl><dl><dt>
+
           <code><a href="spd_isometry_from_identity.html">spd_isometry_from_identity()</a></code>
 
         </dt>
@@ -259,6 +330,18 @@
 
         </dt>
         <dd>Isometry from tangent space at P to tangent space at identity</dd>
+      </dl><dl><dt>
+
+          <code><a href="TangentImageHandler.html">TangentImageHandler</a></code>
+
+        </dt>
+        <dd>TangentImageHandler Class</dd>
+      </dl><dl><dt>
+
+          <code><a href="validate_backend.html">validate_backend()</a></code>
+
+        </dt>
+        <dd>Validate Backend Object</dd>
       </dl><dl><dt>
 
           <code><a href="validate_conns.html">validate_conns()</a></code>
@@ -283,6 +366,18 @@
 
         </dt>
         <dd>Validate Metric</dd>
+      </dl><dl><dt>
+
+          <code><a href="validate_parquet_dir.html">validate_parquet_dir()</a></code>
+
+        </dt>
+        <dd>Validate Parquet Directory Structure</dd>
+      </dl><dl><dt>
+
+          <code><a href="validate_parquet_directory.html">validate_parquet_directory()</a></code>
+
+        </dt>
+        <dd>Validate Parquet Directory</dd>
       </dl><dl><dt>
 
           <code><a href="validate_tan_imgs.html">validate_tan_imgs()</a></code>
@@ -313,6 +408,12 @@
 
         </dt>
         <dd>Vectorize at Identity Matrix</dd>
+      </dl><dl><dt>
+
+          <code><a href="write_connectomes_to_parquet.html">write_connectomes_to_parquet()</a></code>
+
+        </dt>
+        <dd>Write Connectomes to Parquet Files</dd>
       </dl></div>
   </main></div>
 
@@ -322,7 +423,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

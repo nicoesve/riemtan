@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">riemtan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,6 +17,11 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/riemtan.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/performance-benchmarks.html">Performance Benchmarking and Optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/using-parquet.html">Using Parquet Storage for Large Datasets</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -90,7 +95,11 @@
 
 
 <dt><code>distances</code></dt>
-<dd><p>Squared distances to the Frechet mean</p></dd>
+<dd><p>Distances to the Frechet mean</p></dd>
+
+
+<dt><code>batch_size</code></dt>
+<dd><p>Batch size for compute_fmean</p></dd>
 
 
 </dl><p></p></div>
@@ -102,6 +111,7 @@
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
 <ul><li><p><a href="#method-CSample-new"><code>CSample$new()</code></a></p></li>
+<li><p><a href="#method-CSample-load_connectomes_batched"><code>CSample$load_connectomes_batched()</code></a></p></li>
 <li><p><a href="#method-CSample-compute_tangents"><code>CSample$compute_tangents()</code></a></p></li>
 <li><p><a href="#method-CSample-compute_conns"><code>CSample$compute_conns()</code></a></p></li>
 <li><p><a href="#method-CSample-compute_vecs"><code>CSample$compute_vecs()</code></a></p></li>
@@ -123,7 +133,9 @@
 <span>  vec_imgs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  centered <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ref_pt <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">metric_obj</span></span>
+<span>  <span class="va">metric_obj</span>,</span>
+<span>  batch_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  backend <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -153,6 +165,14 @@
 <dd><p>Object of class <code>rmetric</code> representing the Riemannian metric used.</p></dd>
 
 
+<dt><code>batch_size</code></dt>
+<dd><p>The batch size for compute_fmean (default is 32).</p></dd>
+
+
+<dt><code>backend</code></dt>
+<dd><p>A DataBackend object (ListBackend or ParquetBackend). If NULL and conns is provided, a ListBackend will be created automatically.</p></dd>
+
+
 </dl><p></p></div>
 </div>
 <div class="section">
@@ -160,41 +180,83 @@
 <p>A new <code>CSample</code> object.</p>
 </div>
 
-</div><p></p><hr><a id="method-CSample-compute_tangents"></a><div class="section">
-<h3 id="method-compute-tangents-">Method <code>compute_tangents()</code><a class="anchor" aria-label="anchor" href="#method-compute-tangents-"></a></h3>
-<p>This function computes the tangent images from the connectomes.</p><div class="section">
+</div><p></p><hr><a id="method-CSample-load_connectomes_batched"></a><div class="section">
+<h3 id="method-load-connectomes-batched-">Method <code>load_connectomes_batched()</code><a class="anchor" aria-label="anchor" href="#method-load-connectomes-batched-"></a></h3>
+<p>Load connectomes in parallel batches from ParquetBackend.
+This method is particularly useful for large Parquet-backed datasets
+where loading all matrices at once would be memory-prohibitive.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_tangents</span><span class="op">(</span>ref_pt <span class="op">=</span> <span class="fu"><a href="../reference/default_ref_pt.html">default_ref_pt</a></span><span class="op">(</span><span class="va">private</span><span class="op">$</span><span class="va">p</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">load_connectomes_batched</span><span class="op">(</span></span>
+<span>  indices <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  batch_size <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  progress <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>ref_pt</code></dt>
-<dd><p>A reference point, which must be a <code>dppMatrix</code> object (default is <code>default_ref_pt</code>).</p></dd>
+<p></p><div class="arguments"><dl><dt><code>indices</code></dt>
+<dd><p>Optional vector of indices to load. If NULL (default), loads all matrices.</p></dd>
+
+
+<dt><code>batch_size</code></dt>
+<dd><p>Number of matrices to load per batch (default: 50).
+Larger batches use more memory but may be faster.</p></dd>
+
+
+<dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE).</p></dd>
 
 
 </dl><p></p></div>
 </div>
 <div class="section">
 <h4 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h4>
-<p>Error if <code>ref_pt</code> is not a <code>dppMatrix</code> object or if <code>conns</code> is not specified.</p>
+<p>This method only works when the CSample was initialized with a ParquetBackend.
+It loads matrices in parallel batches, clearing the cache between batches to
+manage memory usage. Sequential loading is used for ListBackend.</p>
 </div>
 
 <div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>None</p>
+<p>A list of dppMatrix objects.</p>
+</div>
+<div class="section">
+<h4 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a></h4>
+<p></p><div class="r example copy"><div class="sourceCode"><pre><code>\dontrun{
+# Create CSample with ParquetBackend
+backend &lt;- create_parquet_backend("my_data")
+sample &lt;- CSample$new(backend = backend, metric_obj = airm)
+
+# Load first 100 matrices in batches of 20
+conns &lt;- sample$load_connectomes_batched(indices = 1:100, batch_size = 20)
+}
+</code></pre></div><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-CSample-compute_conns"></a><div class="section">
-<h3 id="method-compute-conns-">Method <code>compute_conns()</code><a class="anchor" aria-label="anchor" href="#method-compute-conns-"></a></h3>
-<p>This function computes the connectomes from the tangent images.</p><div class="section">
+
+</div><p></p><hr><a id="method-CSample-compute_tangents"></a><div class="section">
+<h3 id="method-compute-tangents-">Method <code>compute_tangents()</code><a class="anchor" aria-label="anchor" href="#method-compute-tangents-"></a></h3>
+<p>This function computes the tangent images from the connectomes.</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_conns</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_tangents</span><span class="op">(</span>ref_pt <span class="op">=</span> <span class="fu"><a href="../reference/default_ref_pt.html">default_ref_pt</a></span><span class="op">(</span><span class="va">private</span><span class="op">$</span><span class="va">p</span><span class="op">)</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>ref_pt</code></dt>
+<dd><p>A reference point, which must be a <code>dppMatrix</code> object (default is <code>default_ref_pt</code>).</p></dd>
+
+
+<dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE).</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
 <h4 id="details-1">Details<a class="anchor" aria-label="anchor" href="#details-1"></a></h4>
-<p>Error if tangent images are not specified.</p>
+<p>Error if <code>ref_pt</code> is not a <code>dppMatrix</code> object or if <code>conns</code> is not specified.</p>
 </div>
 
 <div class="section">
@@ -202,13 +264,21 @@
 <p>None</p>
 </div>
 
-</div><p></p><hr><a id="method-CSample-compute_vecs"></a><div class="section">
-<h3 id="method-compute-vecs-">Method <code>compute_vecs()</code><a class="anchor" aria-label="anchor" href="#method-compute-vecs-"></a></h3>
-<p>This function computes the vectorized tangent images from the tangent images.</p><div class="section">
+</div><p></p><hr><a id="method-CSample-compute_conns"></a><div class="section">
+<h3 id="method-compute-conns-">Method <code>compute_conns()</code><a class="anchor" aria-label="anchor" href="#method-compute-conns-"></a></h3>
+<p>This function computes the connectomes from the tangent images.</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_vecs</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_conns</span><span class="op">(</span>progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE).</p></dd>
+
+
+</dl><p></p></div>
+</div>
 <div class="section">
 <h4 id="details-2">Details<a class="anchor" aria-label="anchor" href="#details-2"></a></h4>
 <p>Error if tangent images are not specified.</p>
@@ -219,16 +289,24 @@
 <p>None</p>
 </div>
 
-</div><p></p><hr><a id="method-CSample-compute_unvecs"></a><div class="section">
-<h3 id="method-compute-unvecs-">Method <code>compute_unvecs()</code><a class="anchor" aria-label="anchor" href="#method-compute-unvecs-"></a></h3>
-<p>This function computes the tangent images from the vector images.</p><div class="section">
+</div><p></p><hr><a id="method-CSample-compute_vecs"></a><div class="section">
+<h3 id="method-compute-vecs-">Method <code>compute_vecs()</code><a class="anchor" aria-label="anchor" href="#method-compute-vecs-"></a></h3>
+<p>This function computes the vectorized tangent images from the tangent images.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_unvecs</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_vecs</span><span class="op">(</span>progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE).</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
 <h4 id="details-3">Details<a class="anchor" aria-label="anchor" href="#details-3"></a></h4>
-<p>Error if <code>vec_imgs</code> is not specified.</p>
+<p>Error if tangent images are not specified.</p>
 </div>
 
 <div class="section">
@@ -236,15 +314,46 @@
 <p>None</p>
 </div>
 
-</div><p></p><hr><a id="method-CSample-compute_fmean"></a><div class="section">
-<h3 id="method-compute-fmean-">Method <code>compute_fmean()</code><a class="anchor" aria-label="anchor" href="#method-compute-fmean-"></a></h3>
-<p>This function computes the Frechet mean of the sample.</p><div class="section">
+</div><p></p><hr><a id="method-CSample-compute_unvecs"></a><div class="section">
+<h3 id="method-compute-unvecs-">Method <code>compute_unvecs()</code><a class="anchor" aria-label="anchor" href="#method-compute-unvecs-"></a></h3>
+<p>This function computes the tangent images from the vector images.</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_fmean</span><span class="op">(</span>tol <span class="op">=</span> <span class="fl">0.05</span>, max_iter <span class="op">=</span> <span class="fl">20</span>, lr <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_unvecs</span><span class="op">(</span>progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE).</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="details-4">Details<a class="anchor" aria-label="anchor" href="#details-4"></a></h4>
+<p>Error if <code>vec_imgs</code> is not specified.</p>
+</div>
+
+<div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>None</p>
+</div>
+
+</div><p></p><hr><a id="method-CSample-compute_fmean"></a><div class="section">
+<h3 id="method-compute-fmean-">Method <code>compute_fmean()</code><a class="anchor" aria-label="anchor" href="#method-compute-fmean-"></a></h3>
+<p>This function computes the Frechet mean of the sample.</p><div class="section">
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_fmean</span><span class="op">(</span></span>
+<span>  tol <span class="op">=</span> <span class="fl">0.001</span>,</span>
+<span>  max_iter <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  lr <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>  batch_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  progress <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>tol</code></dt>
 <dd><p>Tolerance for the convergence of the mean (default is 0.05).</p></dd>
 
@@ -257,65 +366,60 @@
 <dd><p>Learning rate for the optimization algorithm (default is 0.2).</p></dd>
 
 
+<dt><code>batch_size</code></dt>
+<dd><p>The batch size (default is the instance's batch_size).</p></dd>
+
+
+<dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE).</p></dd>
+
+
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>None</p>
 </div>
 
 </div><p></p><hr><a id="method-CSample-change_ref_pt"></a><div class="section">
 <h3 id="method-change-ref-pt-">Method <code>change_ref_pt()</code><a class="anchor" aria-label="anchor" href="#method-change-ref-pt-"></a></h3>
 <p>This function changes the reference point for the tangent images.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">change_ref_pt</span><span class="op">(</span><span class="va">new_ref_pt</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">change_ref_pt</span><span class="op">(</span><span class="va">new_ref_pt</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>new_ref_pt</code></dt>
 <dd><p>A new reference point, which must be a <code>dppMatrix</code> object.</p></dd>
+
+
+<dt><code>progress</code></dt>
+<dd><p>Logical indicating whether to show progress (default: FALSE).</p></dd>
 
 
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="details-4">Details<a class="anchor" aria-label="anchor" href="#details-4"></a></h4>
+<h4 id="details-5">Details<a class="anchor" aria-label="anchor" href="#details-5"></a></h4>
 <p>Error if tangent images have not been computed or if <code>new_ref_pt</code> is not a <code>dppMatrix</code> object.</p>
 </div>
 
 <div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>None</p>
 </div>
 
 </div><p></p><hr><a id="method-CSample-center"></a><div class="section">
 <h3 id="method-center-">Method <code>center()</code><a class="anchor" aria-label="anchor" href="#method-center-"></a></h3>
 <p>Center the sample</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">center</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="details-5">Details<a class="anchor" aria-label="anchor" href="#details-5"></a></h4>
-<p>This function centers the sample by computing the Frechet mean if it is not already computed, and then changing the reference point to the computed Frechet mean. Error if tangent images are not specified. Error if the sample is already centered.</p>
-</div>
-
-<div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
-<p>None. This function is called for its side effects.</p>
-</div>
-
-</div><p></p><hr><a id="method-CSample-compute_variation"></a><div class="section">
-<h3 id="method-compute-variation-">Method <code>compute_variation()</code><a class="anchor" aria-label="anchor" href="#method-compute-variation-"></a></h3>
-<p>Compute Variation</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_variation</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
 <h4 id="details-6">Details<a class="anchor" aria-label="anchor" href="#details-6"></a></h4>
-<p>This function computes the variation of the sample. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary. If the sample is not centered, it centers the sample and recomputes the vectors. Finally, it calculates the variation as the mean of the sum of squares of the vector images. Error if <code>vec_imgs</code> is not specified.</p>
+<p>This function centers the sample by computing the Frechet mean if it is not already computed, and then changing the reference point to the computed Frechet mean. Error if tangent images are not specified. Error if the sample is already centered.</p>
 </div>
 
 <div class="section">
@@ -323,16 +427,16 @@
 <p>None. This function is called for its side effects.</p>
 </div>
 
-</div><p></p><hr><a id="method-CSample-compute_dists"></a><div class="section">
-<h3 id="method-compute-dists-">Method <code>compute_dists()</code><a class="anchor" aria-label="anchor" href="#method-compute-dists-"></a></h3>
-<p>Compute distances</p><div class="section">
+</div><p></p><hr><a id="method-CSample-compute_variation"></a><div class="section">
+<h3 id="method-compute-variation-">Method <code>compute_variation()</code><a class="anchor" aria-label="anchor" href="#method-compute-variation-"></a></h3>
+<p>Compute Variation</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_dists</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_variation</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="details-7">Details<a class="anchor" aria-label="anchor" href="#details-7"></a></h4>
-<p>This function computes the distances of the elements of the sample to the Frechet mean. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary. If the sample is not centered, it centers the sample and recomputes the vectors. Finally, it calculates the distances as the Euclidean norms of the vector images. Error if <code>vec_imgs</code> is not specified.</p>
+<p>This function computes the variation of the sample. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary. If the sample is not centered, it centers the sample and recomputes the vectors. Finally, it calculates the variation as the mean of the sum of squares of the vector images. Error if <code>vec_imgs</code> is not specified.</p>
 </div>
 
 <div class="section">
@@ -340,16 +444,16 @@
 <p>None. This function is called for its side effects.</p>
 </div>
 
-</div><p></p><hr><a id="method-CSample-compute_sample_cov"></a><div class="section">
-<h3 id="method-compute-sample-cov-">Method <code>compute_sample_cov()</code><a class="anchor" aria-label="anchor" href="#method-compute-sample-cov-"></a></h3>
-<p>Compute Sample Covariance</p><div class="section">
+</div><p></p><hr><a id="method-CSample-compute_dists"></a><div class="section">
+<h3 id="method-compute-dists-">Method <code>compute_dists()</code><a class="anchor" aria-label="anchor" href="#method-compute-dists-"></a></h3>
+<p>Compute distances</p><div class="section">
 <h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_sample_cov</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_dists</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="details-8">Details<a class="anchor" aria-label="anchor" href="#details-8"></a></h4>
-<p>This function computes the sample covariance matrix for the vector images. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary.</p>
+<p>This function computes the distances of the elements of the sample to the Frechet mean. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary. If the sample is not centered, it centers the sample and recomputes the vectors. Finally, it calculates the distances as the Euclidean norms of the vector images. Error if <code>vec_imgs</code> is not specified.</p>
 </div>
 
 <div class="section">
@@ -357,15 +461,32 @@
 <p>None. This function is called for its side effects.</p>
 </div>
 
+</div><p></p><hr><a id="method-CSample-compute_sample_cov"></a><div class="section">
+<h3 id="method-compute-sample-cov-">Method <code>compute_sample_cov()</code><a class="anchor" aria-label="anchor" href="#method-compute-sample-cov-"></a></h3>
+<p>Compute Sample Covariance</p><div class="section">
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">compute_sample_cov</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="details-9">Details<a class="anchor" aria-label="anchor" href="#details-9"></a></h4>
+<p>This function computes the sample covariance matrix for the vector images. It first checks if the vector images are null, and if so, it computes the vectors, computing first the tangent images if necessary.</p>
+</div>
+
+<div class="section">
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<p>None. This function is called for its side effects.</p>
+</div>
+
 </div><p></p><hr><a id="method-CSample-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CSample</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
@@ -377,6 +498,23 @@
 
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span><span class="co">## Method `CSample$load_connectomes_batched`</span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># Create CSample with ParquetBackend</span></span></span>
+<span class="r-in"><span><span class="va">backend</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_parquet_backend.html">create_parquet_backend</a></span><span class="op">(</span><span class="st">"my_data"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sample</span> <span class="op">&lt;-</span> <span class="va">CSample</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>backend <span class="op">=</span> <span class="va">backend</span>, metric_obj <span class="op">=</span> <span class="va">airm</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Load first 100 matrices in batches of 20</span></span></span>
+<span class="r-in"><span><span class="va">conns</span> <span class="op">&lt;-</span> <span class="va">sample</span><span class="op">$</span><span class="fu">load_connectomes_batched</span><span class="op">(</span>indices <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, batch_size <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
@@ -386,7 +524,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

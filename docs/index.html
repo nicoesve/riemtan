@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">riemtan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,13 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="articles/riemtan.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/performance-benchmarks.html">Performance Benchmarking and Optimization</a></li>
+    <li><a class="dropdown-item" href="articles/using-parquet.html">Using Parquet Storage for Large Datasets</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -114,7 +121,63 @@
 </li>
 <li>R6 class system for handling collections of SPD matrices</li>
 <li>Efficient matrix operations using the Matrix package</li>
+<li>
+<strong>NEW in v0.2.4</strong>: Apache Arrow/Parquet backend for memory-efficient storage of large datasets</li>
+<li>
+<strong>NEW in v0.2.5</strong>: Futureverse/furrr parallel processing for cross-platform performance</li>
 </ul>
+</div>
+<div class="section level2">
+<h2 id="parquet-support-for-large-datasets">Parquet Support for Large Datasets<a class="anchor" aria-label="anchor" href="#parquet-support-for-large-datasets"></a>
+</h2>
+<p>For large brain connectome datasets, riemtan now supports Apache Arrow Parquet format for efficient storage and lazy loading:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nicoesve.github.io/riemtan/">riemtan</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Write connectomes to Parquet format</span></span>
+<span><span class="fu"><a href="reference/write_connectomes_to_parquet.html">write_connectomes_to_parquet</a></span><span class="op">(</span></span>
+<span>  <span class="va">connectomes</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="st">"my_data"</span>,</span>
+<span>  subject_ids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"subj_"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create CSample with Parquet backend (lazy loading)</span></span>
+<span><span class="va">backend</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_parquet_backend.html">create_parquet_backend</a></span><span class="op">(</span><span class="st">"my_data"</span>, cache_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="va">sample</span> <span class="op">&lt;-</span> <span class="va"><a href="reference/CSample.html">CSample</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>backend <span class="op">=</span> <span class="va">backend</span>, metric_obj <span class="op">=</span> <span class="va">airm</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># All operations work as usual</span></span>
+<span><span class="va">sample</span><span class="op">$</span><span class="fu">compute_fmean</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">sample</span><span class="op">$</span><span class="fu">compute_variation</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Benefits: - Memory-efficient: Load matrices on-demand - Fast access: Columnar storage optimized for numerical data - Metadata support: Store subject IDs and provenance information - Fully backwards compatible with list-based workflows</p>
+<p>See the <a href="https://nicoesve.github.io/riemtan/articles/using-parquet.html">Parquet vignette</a> for details.</p>
+</div>
+<div class="section level2">
+<h2 id="parallel-processing-with-futureverse">Parallel Processing with Futureverse<a class="anchor" aria-label="anchor" href="#parallel-processing-with-futureverse"></a>
+</h2>
+<p>riemtan now supports cross-platform parallel processing via the futureverse framework, dramatically improving performance for large datasets:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nicoesve.github.io/riemtan/">riemtan</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Enable parallel processing (works on all platforms including Windows!)</span></span>
+<span><span class="fu"><a href="reference/set_parallel_plan.html">set_parallel_plan</a></span><span class="op">(</span><span class="st">"multisession"</span>, workers <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create sample from large dataset</span></span>
+<span><span class="va">sample</span> <span class="op">&lt;-</span> <span class="va"><a href="reference/CSample.html">CSample</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>conns <span class="op">=</span> <span class="va">large_connectome_list</span>, metric_obj <span class="op">=</span> <span class="va">airm</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># All operations automatically use parallel processing when beneficial</span></span>
+<span><span class="va">sample</span><span class="op">$</span><span class="fu">compute_tangents</span><span class="op">(</span>progress <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>   <span class="co"># 3-8x faster</span></span>
+<span><span class="va">sample</span><span class="op">$</span><span class="fu">compute_fmean</span><span class="op">(</span>progress <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>      <span class="co"># 2-5x faster</span></span>
+<span><span class="va">sample</span><span class="op">$</span><span class="fu">compute_variation</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Parallel batch loading from Parquet</span></span>
+<span><span class="va">backend</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_parquet_backend.html">create_parquet_backend</a></span><span class="op">(</span><span class="st">"huge_dataset"</span><span class="op">)</span></span>
+<span><span class="va">sample</span> <span class="op">&lt;-</span> <span class="va"><a href="reference/CSample.html">CSample</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>backend <span class="op">=</span> <span class="va">backend</span>, metric_obj <span class="op">=</span> <span class="va">airm</span><span class="op">)</span></span>
+<span><span class="va">conns</span> <span class="op">&lt;-</span> <span class="va">sample</span><span class="op">$</span><span class="fu">load_connectomes_batched</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">100</span>, progress <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Reset to sequential processing when done</span></span>
+<span><span class="fu"><a href="reference/reset_parallel_plan.html">reset_parallel_plan</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Benefits: - <strong>Cross-platform</strong>: Works on Windows, Mac, and Linux - <strong>Automatic</strong>: Intelligently uses parallel processing when beneficial - <strong>Flexible</strong>: Multiple backends (multisession, multicore, cluster) - <strong>Progress bars</strong>: Optional progress reporting via progressr - <strong>Seamless</strong>: Existing code works without modification</p>
+<p>Performance gains: - <strong>Parquet I/O</strong>: 5-10x faster loading - <strong>Tangent computations</strong>: 3-8x faster (scales with workers) - <strong>Frechet mean</strong>: 2-5x faster for large samples (n &gt; 100)</p>
 </div>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
@@ -166,7 +229,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Nicolas Escobar <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0009-0006-0800-5692" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Nicolas Escobar <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0009-0006-0800-5692" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 <li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
@@ -182,7 +245,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

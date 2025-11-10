@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">riemtan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,6 +17,11 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/riemtan.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/performance-benchmarks.html">Performance Benchmarking and Optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/using-parquet.html">Using Parquet Storage for Large Datasets</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -85,22 +90,24 @@
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;CSample&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Public:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     batch_size: active binding</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     center: function () </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     change_ref_pt: function (new_ref_pt) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     change_ref_pt: function (new_ref_pt, progress = FALSE) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     clone: function (deep = FALSE) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     compute_conns: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     compute_conns: function (progress = FALSE) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     compute_dists: function () </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     compute_fmean: function (tol = 0.05, max_iter = 20, lr = 0.2) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     compute_fmean: function (tol = 0.001, max_iter = 100, lr = 0.2, batch_size = NULL, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     compute_sample_cov: function () </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     compute_tangents: function (ref_pt = default_ref_pt(private$p)) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     compute_unvecs: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     compute_tangents: function (ref_pt = default_ref_pt(private$p), progress = FALSE) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     compute_unvecs: function (progress = FALSE) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     compute_variation: function () </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     compute_vecs: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     compute_vecs: function (progress = FALSE) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     connectomes: active binding</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     distances: active binding</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     frechet_mean: active binding</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     initialize: function (conns = NULL, tan_imgs = NULL, vec_imgs = NULL, centered = NULL, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     is_centered: active binding</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     load_connectomes_batched: function (indices = NULL, batch_size = 50, progress = FALSE) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     matrix_size: active binding</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     mfd_dim: active binding</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ref_point: active binding</span>
@@ -111,6 +118,8 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>     variation: active binding</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     vector_images: active binding</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Private:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ._batch_size: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     backend: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     centered: FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     conns: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     d: 3</span>
@@ -122,7 +131,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span>     s_cov: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     tangent_handler: TangentImageHandler, R6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     var: NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     vec_imgs: 0.468154420450533 0.362951255864986 -1.30454354503478 0. ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     vec_imgs: -0.665088248545505 1.11395241896922 -0.245896411679153 - ...</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -134,7 +143,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>
