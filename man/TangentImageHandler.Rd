@@ -71,13 +71,15 @@ Set a new reference point.
 \subsection{Method \code{set_reference_point()}}{
 If tangent images have been created, it recomputes them by mapping to the manifold and then to the new tangent space.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TangentImageHandler$set_reference_point(new_ref_pt)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{TangentImageHandler$set_reference_point(new_ref_pt, progress = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{new_ref_pt}}{A new reference point of class dppMatrix.}
+
+\item{\code{progress}}{Logical indicating whether to show progress (default: FALSE)}
 }
 \if{html}{\out{</div>}}
 }
@@ -91,13 +93,15 @@ Computes the tangent images from the points in the manifold
 \if{latex}{\out{\hypertarget{method-TangentImageHandler-compute_tangents}{}}}
 \subsection{Method \code{compute_tangents()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TangentImageHandler$compute_tangents(manifold_points)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{TangentImageHandler$compute_tangents(manifold_points, progress = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{manifold_points}}{A list of connectomes}
+
+\item{\code{progress}}{Logical indicating whether to show progress (default: FALSE)}
 }
 \if{html}{\out{</div>}}
 }
@@ -111,9 +115,16 @@ Computes vectorizations from tangent images
 \if{latex}{\out{\hypertarget{method-TangentImageHandler-compute_vecs}{}}}
 \subsection{Method \code{compute_vecs()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TangentImageHandler$compute_vecs()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{TangentImageHandler$compute_vecs(progress = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{progress}}{Logical indicating whether to show progress (default: FALSE)}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 A matrix, each row of which is a vectorization
 Computes connectomes from tangent images
@@ -124,9 +135,16 @@ Computes connectomes from tangent images
 \if{latex}{\out{\hypertarget{method-TangentImageHandler-compute_conns}{}}}
 \subsection{Method \code{compute_conns()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TangentImageHandler$compute_conns()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{TangentImageHandler$compute_conns(progress = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{progress}}{Logical indicating whether to show progress (default: FALSE)}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 A list of connectomes
 Setter for the tangent images
@@ -188,13 +206,15 @@ Wrapper for set_reference_point
 \if{latex}{\out{\hypertarget{method-TangentImageHandler-relocate_tangents}{}}}
 \subsection{Method \code{relocate_tangents()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TangentImageHandler$relocate_tangents(new_ref_pt)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{TangentImageHandler$relocate_tangents(new_ref_pt, progress = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{new_ref_pt}}{The new reference point}
+
+\item{\code{progress}}{Logical indicating whether to show progress (default: FALSE)}
 }
 \if{html}{\out{</div>}}
 }

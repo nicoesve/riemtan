@@ -1,0 +1,18 @@
+# Experiment artifacts and results
+*/artifacts/
+*/raw_results/
+*/*.csv
+*/*.rds
+*/*.pdf
+*/*.png
+
+# But keep templates and documentation
+!*/README.md
+!*/params.yaml
+!*/*.R
+!*/*.slurm
+
+# Logs
+*.log
+*.out
+*.err
