@@ -10,3 +10,5 @@ src/*.dll
 
 CLAUDE.md
 .claude/
+# built package tarballs
+*.tar.gz
