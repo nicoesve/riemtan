@@ -7,3 +7,5 @@
 ^CLAUDE.md
 ^.*\.so$
 ^.*\.o$
+^\.github$
+^.*\.tar\.gz$
