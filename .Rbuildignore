@@ -9,3 +9,4 @@
 ^.*\.o$
 ^\.github$
 ^.*\.tar\.gz$
+^DATA-POLICY\.md$
